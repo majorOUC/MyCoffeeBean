@@ -169,6 +169,12 @@ app.delete('/api/images/:key', async (c) => {
   return c.json({ ok: true })
 })
 
+// Pages 部署时，未匹配 /api/* 的请求回退到静态资源（SPA 由前端路由接管）
+app.all('*', async (c) => {
+  if (c.env.ASSETS) return c.env.ASSETS.fetch(c.req.raw)
+  return c.text('Not Found', 404)
+})
+
 /* ------------------------------- helpers ------------------------------- */
 
 function validateCoffee(input: CoffeeInput): string | null {
