@@ -1,0 +1,14 @@
+# Cloudflare Pages 项目配置（前端 + API 同域）
+# API 以 dist/_worker.js（Hono app）形式随 Pages 部署，/api/* 不再依赖 workers.dev
+name = "coffee-atlas"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-08-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "coffee-atlas-db"
+database_id = "a8d94ea0-2f32-47ca-81b6-64dca2eee082"
+
+[[r2_buckets]]
+binding = "IMAGES"
+bucket_name = "coffee-atlas-imgs"

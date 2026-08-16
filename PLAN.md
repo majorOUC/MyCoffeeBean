@@ -188,8 +188,10 @@ npx wrangler deploy                    # API → Workers
 | 0     | 项目初始化          | ✅ 完成                     |
 | 1     | 前端 UI（Mock）     | ✅ 完成                     |
 | 2     | 数据模型            | ✅ 完成（migration + 类型） |
-| 3     | Cloudflare 接入     | 🟡 本地全通，待部署         |
-| 4     | 真实 CRUD + R2 图片 | 🟡 本地全通，待部署         |
+| 3     | Cloudflare 接入     | ✅ 完成（已部署上线）       |
+| 4     | 真实 CRUD + R2 图片 | ✅ 完成（线上已验证）       |
 | 5     | 咖啡产地地图        | ⬜                          |
 | 6     | 统计 Dashboard      | ⬜                          |
 | 7     | 产品化打磨 + 上线   | ⬜                          |
+
+> 线上地址：<https://coffee-atlas-31p.pages.dev>（Pages 同域 API，D1 + R2 已绑定）

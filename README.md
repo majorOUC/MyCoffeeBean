@@ -41,8 +41,18 @@ npm run build             # 类型检查（前端 + Workers）+ 生产构建
 npm run lint              # ESLint 检查
 npm run format            # Prettier 格式化
 npm run db:migrate:remote # 部署时：对远程 D1 执行 migrations
-npm run deploy:api        # 部署 Worker 到 Cloudflare
+npm run deploy:pages      # 构建并部署到 Cloudflare Pages（前端 + 同域 API）
 ```
+
+## 线上部署
+
+线上地址：<https://coffee-atlas-31p.pages.dev>（`*.pages.dev` 在部分网络需代理访问）
+
+部署架构：前端静态资源与 API（`dist/_worker.js`，Hono）同域部署在 Cloudflare
+Pages，`/api/*` 无跨域；D1 与 R2 通过根目录 `wrangler.toml` 绑定。
+更新部署只需 `npm run deploy:pages`。
+另有独立 Worker 入口 `npm run deploy:api`（`coffee-atlas-api.<子域>.workers.dev`），
+与 Pages 共用同一 D1/R2，可作备用。
 
 ## API 一览
 
