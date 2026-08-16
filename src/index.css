@@ -1,0 +1,46 @@
+@import 'tailwindcss';
+
+/*
+ * Coffee Atlas 设计基调
+ * - 咖啡棕 coffee：主色，按钮 / 强调 / 深色块
+ * - 米白 cream：页面背景，营造纸感
+ * - 墨色 ink：正文文字，避免纯黑
+ * - 叶绿 leaf：少量点缀（成功 / 产地 / 生豆意象）
+ */
+@theme {
+  --color-coffee-50: #faf6f1;
+  --color-coffee-100: #f1e8de;
+  --color-coffee-200: #e2d1bf;
+  --color-coffee-300: #cdb298;
+  --color-coffee-400: #b58f6f;
+  --color-coffee-500: #9c7350;
+  --color-coffee-600: #825c3e;
+  --color-coffee-700: #684833;
+  --color-coffee-800: #4e3526;
+  --color-coffee-900: #37251a;
+
+  --color-cream-50: #fdfbf7;
+  --color-cream-100: #faf5ec;
+  --color-cream-200: #f3ebdd;
+  --color-cream-300: #eaddcc;
+
+  --color-ink-900: #2b211a;
+  --color-ink-700: #453729;
+  --color-ink-500: #6b5a4a;
+  --color-ink-400: #8a7a6d;
+
+  --color-leaf-300: #a3c98a;
+  --color-leaf-400: #7fb069;
+  --color-leaf-500: #5f9e4d;
+  --color-leaf-600: #4a7d3c;
+  --color-leaf-700: #3b6330;
+
+  --font-display: 'Georgia', 'Songti SC', 'Noto Serif SC', serif;
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+}
+
+body {
+  @apply bg-cream-100 text-ink-900 font-sans antialiased;
+}
