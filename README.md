@@ -6,30 +6,60 @@
 
 ## 技术栈
 
-| 层           | 技术                                 |
-| ------------ | ------------------------------------ |
-| 前端         | React 19 + TypeScript + Vite         |
-| 样式         | Tailwind CSS v4                      |
-| 路由         | React Router v7                      |
-| 代码质量     | ESLint (flat config) + Prettier      |
-| 部署（规划） | Cloudflare Pages + Workers + D1 + R2 |
+| 层       | 技术                            |
+| -------- | ------------------------------- |
+| 前端     | React 19 + TypeScript + Vite    |
+| 样式     | Tailwind CSS v4                 |
+| 路由     | React Router v7                 |
+| API      | Cloudflare Workers (Hono)       |
+| 数据库   | Cloudflare D1（SQLite）         |
+| 图片存储 | Cloudflare R2                   |
+| 代码质量 | ESLint (flat config) + Prettier |
 
 ## 本地开发
 
-```bash
-npm install    # 安装依赖
-npm run dev    # 启动开发服务器（默认 http://localhost:5173）
-```
-
-其他常用命令：
+需要两个终端：
 
 ```bash
-npm run build         # 类型检查 + 生产构建
-npm run preview       # 预览生产构建
-npm run lint          # ESLint 检查
-npm run format        # Prettier 格式化
-npm run format:check  # Prettier 检查
+npm install              # 安装依赖
+
+# 终端 1：启动 API（本地模拟 D1 + R2，无需 Cloudflare 账号）
+npm run db:migrate:local # 首次运行：建表
+npm run dev:api          # http://localhost:8787
+
+# 终端 2：启动前端
+npm run dev              # http://localhost:5173
 ```
+
+前端默认连接本地 API（`.env.development`）。只想看 UI 不起 API 时，
+设置 `VITE_USE_MOCK=true` 后重启 `npm run dev` 即可回到 Mock 数据。
+
+其他命令：
+
+```bash
+npm run build             # 类型检查（前端 + Workers）+ 生产构建
+npm run lint              # ESLint 检查
+npm run format            # Prettier 格式化
+npm run db:migrate:remote # 部署时：对远程 D1 执行 migrations
+npm run deploy:api        # 部署 Worker 到 Cloudflare
+```
+
+## API 一览
+
+| 方法   | 路径                      | 说明                                     |
+| ------ | ------------------------- | ---------------------------------------- |
+| GET    | /api/coffees              | 列表（search/country/… 筛选，sort 排序） |
+| GET    | /api/coffees/:id          | 详情                                     |
+| POST   | /api/coffees              | 新增                                     |
+| PUT    | /api/coffees/:id          | 更新                                     |
+| DELETE | /api/coffees/:id          | 删除（含关联 tastings 与图片）           |
+| GET    | /api/coffees/:id/tastings | 冲煮记录列表                             |
+| POST   | /api/coffees/:id/tastings | 新增冲煮记录                             |
+| GET    | /api/tastings/recent      | 最近饮用                                 |
+| GET    | /api/stats                | 汇总统计                                 |
+| POST   | /api/images               | 上传图片到 R2                            |
+| GET    | /api/images/:key          | 读取图片（长缓存）                       |
+| DELETE | /api/images/:key          | 删除图片                                 |
 
 ## 目录结构
 
@@ -39,10 +69,15 @@ src/
 ├── pages/        # 路由页面
 ├── layouts/      # 页面布局（导航 / 页脚）
 ├── hooks/        # 自定义 React Hooks
-├── services/     # 数据服务层（API 客户端，Phase 3 起）
-├── types/        # TypeScript 类型定义
+├── services/     # 数据服务层（Mock / HTTP 双实现，同一接口）
+├── types/        # TypeScript 类型定义（前后端共享）
 ├── utils/        # 工具函数
-└── data/         # 静态 / Mock 数据（Phase 1）
+└── data/         # 常量与 Mock 种子数据
+
+workers/
+├── src/          # Cloudflare Worker（Hono REST API）
+├── migrations/   # D1 建表 SQL
+└── wrangler.jsonc
 ```
 
 ## 开发路线
@@ -51,4 +86,4 @@ src/
 
 ## 环境变量
 
-参考 `.env.example`，复制为 `.env` 后按需填写（Phase 3 起才会用到）。
+参考 `.env.example`。本地开发默认值见 `.env.development`。

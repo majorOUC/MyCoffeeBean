@@ -1,4 +1,5 @@
 import { countryCover, countryFlag } from '@/utils/format'
+import { resolveImageUrl } from '@/utils/url'
 import type { Coffee } from '@/types/coffee'
 
 interface CoffeeCoverProps {
@@ -14,10 +15,11 @@ export default function CoffeeCover({
   coffee,
   className = '',
 }: CoffeeCoverProps) {
-  if (coffee.imageUrl) {
+  const imageUrl = resolveImageUrl(coffee.imageUrl)
+  if (imageUrl) {
     return (
       <img
-        src={coffee.imageUrl}
+        src={imageUrl}
         alt={`${coffee.name} 包装`}
         className={`h-full w-full object-cover ${className}`}
         loading="lazy"

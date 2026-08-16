@@ -3,7 +3,7 @@
  * Mock 阶段直接存 dataURL；Phase 4 起，同一函数产出的 Blob 会改为上传 R2。
  */
 export async function compressImage(
-  file: File,
+  file: Blob,
   maxEdge = 1200,
   quality = 0.85,
 ): Promise<string> {

@@ -1,0 +1,25 @@
+{
+  // Coffee Atlas API — Cloudflare Worker
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "coffee-atlas-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-01",
+
+  // 部署前替换为真实资源：
+  //   npx wrangler d1 create coffee-atlas-db
+  //   npx wrangler r2 bucket create coffee-atlas-imgs
+  // 本地 `wrangler dev` 使用本地模拟，不校验这里的 id。
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "coffee-atlas-db",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+    },
+  ],
+  "r2_buckets": [
+    {
+      "binding": "IMAGES",
+      "bucket_name": "coffee-atlas-imgs",
+    },
+  ],
+}

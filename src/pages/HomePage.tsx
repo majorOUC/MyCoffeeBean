@@ -12,7 +12,7 @@ export default function HomePage() {
   const [stats, setStats] = useState<AtlasStats | null>(null)
   const [recent, setRecent] = useState<Coffee[]>([])
   const [top, setTop] = useState<Coffee | null>(null)
-  const [recentTastings, setRecentTastings] = useState<Tasting[]>([])
+  const [recentTastings, setRecentTastings] = useState<Tasting[] | null>(null)
 
   useEffect(() => {
     void (async () => {
@@ -113,10 +113,15 @@ export default function HomePage() {
         <section>
           <SectionTitle emoji="🫖" title="最近饮用" />
           <div className="space-y-3">
-            {recentTastings.map((t) => (
+            {recentTastings === null && <LoadingRow />}
+            {recentTastings?.map((t) => (
               <TastingRow key={t.id} tasting={t} />
             ))}
-            {recentTastings.length === 0 && <LoadingRow />}
+            {recentTastings?.length === 0 && (
+              <div className="rounded-2xl border border-dashed border-coffee-300/60 p-4 text-center text-sm text-ink-400">
+                还没有饮用记录，去详情页记录一次冲煮吧
+              </div>
+            )}
           </div>
         </section>
       </div>

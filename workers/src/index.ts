@@ -1,0 +1,205 @@
+import { cors } from 'hono/cors'
+import { Hono } from 'hono'
+
+import { Database } from './db'
+import type { Env } from './db'
+import type { Coffee, CoffeeInput, TastingInput } from '../../src/types/coffee'
+
+const app = new Hono<{ Bindings: Env }>()
+
+// 开发期前端 (5173/5174) 与 API (8787) 跨域；生产同域也不受影响
+app.use('/api/*', cors())
+
+app.get('/api/health', (c) => c.json({ ok: true }))
+
+/* ------------------------------- coffees ------------------------------- */
+
+app.get('/api/coffees', async (c) => {
+  const db = new Database(c.env.DB)
+  const coffees = await db.listCoffees({
+    search: c.req.query('search'),
+    country: c.req.query('country'),
+    process: c.req.query('process'),
+    roastLevel: c.req.query('roastLevel'),
+    sort: (c.req.query('sort') as 'rating' | 'recent' | 'name') ?? 'recent',
+  })
+  return c.json(coffees)
+})
+
+app.get('/api/coffees/:id', async (c) => {
+  const db = new Database(c.env.DB)
+  const coffee = await db.getCoffee(c.req.param('id'))
+  if (!coffee) return c.json({ error: 'not found' }, 404)
+  return c.json(coffee)
+})
+
+app.post('/api/coffees', async (c) => {
+  const input = await c.req.json<CoffeeInput>()
+  const invalid = validateCoffee(input)
+  if (invalid) return c.json({ error: invalid }, 400)
+
+  const now = new Date().toISOString()
+  const coffee: Coffee = {
+    ...normalize(input),
+    id: crypto.randomUUID(),
+    createdAt: now,
+    updatedAt: now,
+  }
+  const db = new Database(c.env.DB)
+  await db.createCoffee(coffee)
+  return c.json(coffee, 201)
+})
+
+app.put('/api/coffees/:id', async (c) => {
+  const db = new Database(c.env.DB)
+  const existing = await db.getCoffee(c.req.param('id'))
+  if (!existing) return c.json({ error: 'not found' }, 404)
+
+  const input = await c.req.json<CoffeeInput>()
+  const invalid = validateCoffee(input)
+  if (invalid) return c.json({ error: invalid }, 400)
+
+  if (existing.imageUrl && existing.imageUrl !== input.imageUrl) {
+    await cleanupImage(c.env, existing.imageUrl)
+  }
+
+  const updated: Coffee = {
+    ...existing,
+    ...normalize(input),
+    updatedAt: new Date().toISOString(),
+  }
+  await db.updateCoffee(existing.id, updated)
+  return c.json(updated)
+})
+
+app.delete('/api/coffees/:id', async (c) => {
+  const db = new Database(c.env.DB)
+  const existing = await db.getCoffee(c.req.param('id'))
+  if (!existing) return c.json({ error: 'not found' }, 404)
+  await cleanupImage(c.env, existing.imageUrl)
+  await db.deleteCoffee(existing.id)
+  return c.json({ ok: true })
+})
+
+/* ------------------------------- tastings ------------------------------ */
+
+app.get('/api/coffees/:id/tastings', async (c) => {
+  const db = new Database(c.env.DB)
+  const tastings = await db.listTastings(c.req.param('id'))
+  return c.json(tastings)
+})
+
+app.post('/api/coffees/:id/tastings', async (c) => {
+  const coffeeId = c.req.param('id')
+  const db = new Database(c.env.DB)
+  const coffee = await db.getCoffee(coffeeId)
+  if (!coffee) return c.json({ error: 'coffee not found' }, 404)
+
+  const input = await c.req.json<TastingInput>()
+  if (!input.date || !input.brewMethod) {
+    return c.json({ error: 'date and brewMethod are required' }, 400)
+  }
+
+  const tasting = {
+    ...input,
+    coffeeId,
+    id: crypto.randomUUID(),
+  }
+  await db.createTasting(tasting)
+  return c.json(tasting, 201)
+})
+
+app.get('/api/tastings/recent', async (c) => {
+  const db = new Database(c.env.DB)
+  const limit = Math.min(Number(c.req.query('limit') ?? 5), 50)
+  const tastings = await db.listRecentTastings(limit)
+  return c.json(tastings)
+})
+
+/* -------------------------------- stats -------------------------------- */
+
+app.get('/api/stats', async (c) => {
+  const db = new Database(c.env.DB)
+  return c.json(await db.getStats())
+})
+
+/* -------------------------------- images ------------------------------- */
+
+const IMAGE_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/avif',
+])
+const MAX_IMAGE_BYTES = 8 * 1024 * 1024
+
+app.post('/api/images', async (c) => {
+  const form = await c.req.formData()
+  const file = form.get('file')
+  if (!(file instanceof File)) {
+    return c.json({ error: 'file field is required' }, 400)
+  }
+  if (!IMAGE_TYPES.has(file.type)) {
+    return c.json({ error: 'unsupported image type' }, 415)
+  }
+  if (file.size > MAX_IMAGE_BYTES) {
+    return c.json({ error: 'image too large (max 8MB)' }, 413)
+  }
+
+  const ext = file.type.split('/')[1].replace('jpeg', 'jpg')
+  const key = `${crypto.randomUUID()}.${ext}`
+  await c.env.IMAGES.put(key, file.stream(), {
+    httpMetadata: { contentType: file.type },
+  })
+  return c.json({ key, url: `/api/images/${key}` }, 201)
+})
+
+app.get('/api/images/:key', async (c) => {
+  const object = await c.env.IMAGES.get(c.req.param('key'))
+  if (!object) return c.json({ error: 'not found' }, 404)
+
+  const headers = new Headers()
+  object.writeHttpMetadata(headers)
+  headers.set('Cache-Control', 'public, max-age=31536000, immutable')
+  return new Response(object.body, { headers })
+})
+
+app.delete('/api/images/:key', async (c) => {
+  await c.env.IMAGES.delete(c.req.param('key'))
+  return c.json({ ok: true })
+})
+
+/* ------------------------------- helpers ------------------------------- */
+
+function validateCoffee(input: CoffeeInput): string | null {
+  if (!input.name?.trim()) return 'name is required'
+  if (!input.roaster?.trim()) return 'roaster is required'
+  if (!input.country?.trim()) return 'country is required'
+  if (!input.process) return 'process is required'
+  if (!input.roastLevel) return 'roastLevel is required'
+  return null
+}
+
+/** 删除 coffee 引用的 R2 图片（仅清理本 API 管理的对象） */
+async function cleanupImage(env: Env, imageUrl?: string): Promise<void> {
+  if (!imageUrl?.startsWith('/api/images/')) return
+  const key = imageUrl.slice('/api/images/'.length)
+  await env.IMAGES.delete(key)
+}
+
+function normalize(input: CoffeeInput): CoffeeInput {
+  return {
+    ...input,
+    name: input.name.trim(),
+    roaster: input.roaster.trim(),
+    country: input.country.trim(),
+    region: (input.region ?? '').trim(),
+    farm: input.farm?.trim() || undefined,
+    variety: input.variety?.trim() || undefined,
+    description: input.description?.trim() || undefined,
+    flavorNotes: input.flavorNotes ?? [],
+    rating: Math.min(5, Math.max(0, Math.round((input.rating ?? 0) * 2) / 2)),
+  }
+}
+
+export default app

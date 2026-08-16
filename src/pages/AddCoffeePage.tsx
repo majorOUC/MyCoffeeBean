@@ -12,7 +12,7 @@ import {
 } from '@/data/constants'
 import { coffeeService } from '@/services/coffeeService'
 import type { CoffeeInput, Process, RoastLevel } from '@/types/coffee'
-import { compressImage } from '@/utils/image'
+import { resolveImageUrl } from '@/utils/url'
 
 const COMMON_COUNTRIES = [
   'Ethiopia',
@@ -77,12 +77,17 @@ export default function AddCoffeePage() {
     }))
   }
 
+  const [uploading, setUploading] = useState(false)
+
   const handleFile = async (file: File) => {
+    setUploading(true)
     try {
-      const dataUrl = await compressImage(file)
-      set('imageUrl', dataUrl)
+      const url = await coffeeService.uploadImage(file)
+      set('imageUrl', url)
     } catch {
-      window.alert('图片读取失败，请换一张试试。')
+      window.alert('图片上传失败，请重试。')
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -270,12 +275,14 @@ export default function AddCoffeePage() {
         </Section>
 
         {/* 图片 */}
-        <Section title="包装照片" hint="可选，将自动压缩保存">
+        <Section title="包装照片" hint="可选，将自动压缩后上传">
           <div className="flex items-start gap-4">
             <div className="flex h-28 w-28 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-dashed border-coffee-300 bg-cream-50">
-              {form.imageUrl ? (
+              {uploading ? (
+                <span className="text-xs text-ink-400">上传中…</span>
+              ) : form.imageUrl ? (
                 <img
-                  src={form.imageUrl}
+                  src={resolveImageUrl(form.imageUrl)}
                   alt="包装照片预览"
                   className="h-full w-full object-cover"
                 />
@@ -298,10 +305,11 @@ export default function AddCoffeePage() {
               />
               <button
                 type="button"
+                disabled={uploading}
                 onClick={() => fileRef.current?.click()}
-                className="rounded-full border border-coffee-300 px-4 py-2 text-sm text-coffee-700 transition-colors hover:bg-coffee-100"
+                className="rounded-full border border-coffee-300 px-4 py-2 text-sm text-coffee-700 transition-colors hover:bg-coffee-100 disabled:opacity-50"
               >
-                选择图片
+                {uploading ? '上传中…' : '选择图片'}
               </button>
               {form.imageUrl && (
                 <button
