@@ -74,6 +74,12 @@ export interface CoffeeQuery {
   sort?: 'rating' | 'recent' | 'name'
 }
 
+/** 单个分布项 */
+export interface Distribution {
+  label: string
+  count: number
+}
+
 /** 汇总统计 */
 export interface AtlasStats {
   totalCoffees: number
@@ -82,4 +88,14 @@ export interface AtlasStats {
   totalProcesses: number
   totalTastings: number
   averageRating: number
+  /** 国家分布（按豆数降序） */
+  countryDist: Distribution[]
+  /** 处理法分布 */
+  processDist: Distribution[]
+  /** 烘焙度分布 */
+  roastDist: Distribution[]
+  /** 评分分布（label 为 "4.5" 等） */
+  ratingDist: Distribution[]
+  /** 月度饮用数量（label 为 "2026-08"） */
+  monthlyTastings: Distribution[]
 }

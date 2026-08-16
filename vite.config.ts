@@ -12,4 +12,10 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  // 本地开发：/api/* 由 Vite 转发到 wrangler dev，与生产（Pages 同域）架构一致
+  server: {
+    proxy: {
+      '/api': 'http://localhost:8787',
+    },
+  },
 })

@@ -36,6 +36,14 @@ function save(store: Store): void {
   }
 }
 
+function dist(values: string[]): Array<{ label: string; count: number }> {
+  const map = new Map<string, number>()
+  for (const v of values) map.set(v, (map.get(v) ?? 0) + 1)
+  return [...map.entries()]
+    .map(([label, count]) => ({ label, count }))
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
+}
+
 function matches(coffee: Coffee, query: CoffeeQuery): boolean {
   const { search, country, process, roastLevel } = query
   if (country && coffee.country !== country) return false
@@ -159,6 +167,13 @@ class MockCoffeeService implements CoffeeService {
             (rated.reduce((sum, c) => sum + c.rating, 0) / rated.length) * 10,
           ) / 10
         : 0,
+      countryDist: dist(coffees.map((c) => c.country)),
+      processDist: dist(coffees.map((c) => c.process)),
+      roastDist: dist(coffees.map((c) => c.roastLevel)),
+      ratingDist: dist(coffees.map((c) => String(c.rating))),
+      monthlyTastings: dist(tastings.map((t) => t.date.slice(0, 7))).sort(
+        (a, b) => (a.label < b.label ? -1 : 1),
+      ),
     }
   }
   async uploadImage(file: File | Blob): Promise<string> {

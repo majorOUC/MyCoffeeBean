@@ -2,32 +2,49 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import CoffeeCover from '@/components/CoffeeCover'
+import ErrorState from '@/components/ErrorState'
 import RatingStars from '@/components/RatingStars'
 import { PROCESS_LABEL } from '@/data/constants'
+import { useAsync } from '@/hooks/useAsync'
 import { coffeeService } from '@/services/coffeeService'
 import type { AtlasStats, Coffee, Tasting } from '@/types/coffee'
 import { countryFlag, timeAgo } from '@/utils/format'
 
-export default function HomePage() {
-  const [stats, setStats] = useState<AtlasStats | null>(null)
-  const [recent, setRecent] = useState<Coffee[]>([])
-  const [top, setTop] = useState<Coffee | null>(null)
-  const [recentTastings, setRecentTastings] = useState<Tasting[] | null>(null)
+interface HomeData {
+  stats: AtlasStats
+  recent: Coffee[]
+  top: Coffee | null
+  recentTastings: Tasting[]
+}
 
-  useEffect(() => {
-    void (async () => {
-      const [s, recentList, topList, tastings] = await Promise.all([
-        coffeeService.getStats(),
-        coffeeService.listCoffees({ sort: 'recent' }),
-        coffeeService.listCoffees({ sort: 'rating' }),
-        coffeeService.listRecentTastings(4),
-      ])
-      setStats(s)
-      setRecent(recentList.slice(0, 3))
-      setTop(topList[0] ?? null)
-      setRecentTastings(tastings)
-    })()
-  }, [])
+export default function HomePage() {
+  const { data, error, retry } = useAsync<HomeData>(async () => {
+    const [stats, recentList, topList, recentTastings] = await Promise.all([
+      coffeeService.getStats(),
+      coffeeService.listCoffees({ sort: 'recent' }),
+      coffeeService.listCoffees({ sort: 'rating' }),
+      coffeeService.listRecentTastings(4),
+    ])
+    return {
+      stats,
+      recent: recentList.slice(0, 3),
+      top: topList[0] ?? null,
+      recentTastings,
+    }
+  })
+
+  if (error) {
+    return (
+      <div className="py-16">
+        <ErrorState onRetry={retry} />
+      </div>
+    )
+  }
+
+  const stats = data?.stats
+  const recent = data?.recent ?? []
+  const top = data?.top ?? null
+  const recentTastings = data?.recentTastings ?? null
 
   return (
     <div className="py-8 sm:py-12">

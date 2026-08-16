@@ -3,8 +3,10 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import CoffeeCover from '@/components/CoffeeCover'
 import EmptyState from '@/components/EmptyState'
+import ErrorState from '@/components/ErrorState'
 import RatingStars from '@/components/RatingStars'
 import Tag from '@/components/Tag'
+import { useToast } from '@/components/toastContext'
 import { BREW_LABEL, PROCESS_LABEL, ROAST_LABEL } from '@/data/constants'
 import { coffeeService } from '@/services/coffeeService'
 import type { Coffee, Tasting } from '@/types/coffee'
@@ -18,20 +20,32 @@ export default function CoffeeDetailPage() {
 
 function CoffeeDetail({ id }: { id: string }) {
   const navigate = useNavigate()
+  const toast = useToast()
   const [coffee, setCoffee] = useState<Coffee | null | undefined>(undefined)
   const [tastings, setTastings] = useState<Tasting[]>([])
+  const [loadError, setLoadError] = useState(false)
 
   useEffect(() => {
     if (!id) return
-    void (async () => {
-      const [c, t] = await Promise.all([
-        coffeeService.getCoffee(id),
-        coffeeService.listTastings(id),
-      ])
-      setCoffee(c ?? null)
-      setTastings(t)
-    })()
+    Promise.all([
+      coffeeService.getCoffee(id),
+      coffeeService.listTastings(id),
+    ]).then(
+      ([c, t]) => {
+        setCoffee(c ?? null)
+        setTastings(t)
+      },
+      () => setLoadError(true),
+    )
   }, [id])
+
+  if (loadError) {
+    return (
+      <div className="py-16">
+        <ErrorState onRetry={() => navigate(0)} />
+      </div>
+    )
+  }
 
   if (coffee === undefined) {
     return (
@@ -63,8 +77,13 @@ function CoffeeDetail({ id }: { id: string }) {
 
   const handleDelete = async () => {
     if (!window.confirm(`确定删除「${coffee.name}」及其全部冲煮记录？`)) return
-    await coffeeService.deleteCoffee(coffee.id)
-    navigate('/coffees')
+    try {
+      await coffeeService.deleteCoffee(coffee.id)
+      toast.show(`已删除「${coffee.name}」`, 'success')
+      navigate('/coffees')
+    } catch {
+      toast.show('删除失败，请重试', 'error')
+    }
   }
 
   return (

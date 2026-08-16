@@ -1,11 +1,15 @@
 @import 'tailwindcss';
 
+/* class 策略的暗色模式：html.dark */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /*
  * Coffee Atlas 设计基调
  * - 咖啡棕 coffee：主色，按钮 / 强调 / 深色块
  * - 米白 cream：页面背景，营造纸感
  * - 墨色 ink：正文文字，避免纯黑
  * - 叶绿 leaf：少量点缀（成功 / 产地 / 生豆意象）
+ * 组件一律引用语义色，暗色模式通过 .dark 作用域整体反转色板。
  */
 @theme {
   --color-coffee-50: #faf6f1;
@@ -39,8 +43,67 @@
   --font-sans:
     ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'PingFang SC',
     'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+
+  --animate-fade-slide: fade-slide 0.35s ease both;
+}
+
+@keyframes fade-slide {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 暗色色板：把语义色整体映射到深色基底（越浅的档位在暗色下越深） */
+.dark {
+  --color-coffee-50: #26291f;
+  --color-coffee-100: #2b2118;
+  --color-coffee-200: #3d2f22;
+  --color-coffee-300: #55402e;
+  --color-coffee-400: #7a5c40;
+  --color-coffee-500: #a07a56;
+  --color-coffee-600: #c39a6d;
+  --color-coffee-700: #d3a87c;
+  --color-coffee-800: #e6c39a;
+  --color-coffee-900: #f3dcbd;
+
+  --color-cream-50: #221c15;
+  --color-cream-100: #191410;
+  --color-cream-200: #2c241b;
+  --color-cream-300: #3b3125;
+
+  --color-ink-900: #ece1d2;
+  --color-ink-700: #d3c3af;
+  --color-ink-500: #a4917e;
+  --color-ink-400: #7f6f5f;
+
+  --color-leaf-300: #8fbf78;
+  --color-leaf-400: #a3d18b;
+  --color-leaf-500: #7fb069;
+  --color-leaf-600: #6a9c56;
+  --color-leaf-700: #588a47;
 }
 
 body {
   @apply bg-cream-100 text-ink-900 font-sans antialiased;
+}
+
+/* 全局过渡（主题切换时颜色平滑过渡） */
+body,
+header,
+footer,
+section,
+div,
+span,
+button,
+a,
+input,
+select,
+textarea {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-duration: 0.25s;
 }

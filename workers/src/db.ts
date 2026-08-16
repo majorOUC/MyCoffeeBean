@@ -262,6 +262,15 @@ export class Database {
       .prepare('SELECT COUNT(*) AS n FROM tastings')
       .first<{ n: number }>()
 
+    const [countryDist, processDist, roastDist, ratingDist, monthlyTastings] =
+      await Promise.all([
+        this.distBy('country', 'coffees'),
+        this.distBy('process', 'coffees'),
+        this.distBy('roast_level', 'coffees'),
+        this.distBy('rating', 'coffees'),
+        this.distBy('substr(date, 1, 7)', 'tastings'),
+      ])
+
     return {
       totalCoffees: overview?.totalCoffees ?? 0,
       totalCountries: overview?.totalCountries ?? 0,
@@ -269,6 +278,24 @@ export class Database {
       totalProcesses: overview?.totalProcesses ?? 0,
       totalTastings: tastings?.n ?? 0,
       averageRating: overview?.averageRating ?? 0,
+      countryDist,
+      processDist,
+      roastDist,
+      ratingDist,
+      monthlyTastings,
     }
+  }
+
+  /** 按 SQL 表达式聚合分布，count 降序 */
+  private async distBy(
+    expr: string,
+    table: 'coffees' | 'tastings',
+  ): Promise<Array<{ label: string; count: number }>> {
+    const { results } = await this.db
+      .prepare(
+        `SELECT ${expr} AS label, COUNT(*) AS count FROM ${table} GROUP BY label ORDER BY count DESC, label ASC`,
+      )
+      .all<{ label: string | number; count: number }>()
+    return results.map((r) => ({ label: String(r.label), count: r.count }))
   }
 }

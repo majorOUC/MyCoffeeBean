@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import RatingStars from '@/components/RatingStars'
 import Tag from '@/components/Tag'
+import { useToast } from '@/components/toastContext'
 import {
   FLAVOR_NOTES,
   PROCESSES,
@@ -48,6 +49,7 @@ export default function AddCoffeePage() {
   const [params] = useSearchParams()
   const editId = params.get('id')
   const navigate = useNavigate()
+  const toast = useToast()
 
   const [form, setForm] = useState<CoffeeInput>(emptyForm)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -85,7 +87,7 @@ export default function AddCoffeePage() {
       const url = await coffeeService.uploadImage(file)
       set('imageUrl', url)
     } catch {
-      window.alert('图片上传失败，请重试。')
+      toast.show('图片上传失败，请重试', 'error')
     } finally {
       setUploading(false)
     }
@@ -118,7 +120,16 @@ export default function AddCoffeePage() {
       const coffee = editId
         ? await coffeeService.updateCoffee(editId, payload)
         : await coffeeService.addCoffee(payload)
+      toast.show(
+        editId ? '已保存修改' : `「${payload.name}」已收入图鉴`,
+        'success',
+      )
       navigate(coffee ? `/coffees/${coffee.id}` : '/coffees')
+    } catch (err) {
+      toast.show(
+        err instanceof Error && err.message ? err.message : '保存失败，请重试',
+        'error',
+      )
     } finally {
       setSaving(false)
     }

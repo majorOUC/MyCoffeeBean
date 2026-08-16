@@ -1,15 +1,16 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import CoffeeCard from '@/components/CoffeeCard'
 import EmptyState from '@/components/EmptyState'
+import ErrorState from '@/components/ErrorState'
 import {
   PROCESSES,
   PROCESS_LABEL,
   ROAST_LABEL,
   ROAST_LEVELS,
 } from '@/data/constants'
+import { useAsync } from '@/hooks/useAsync'
 import { coffeeService } from '@/services/coffeeService'
-import type { Coffee } from '@/types/coffee'
 
 type SortOption = 'recent' | 'rating' | 'name'
 
@@ -20,8 +21,9 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
 ]
 
 export default function CoffeesPage() {
-  const [allCoffees, setAllCoffees] = useState<Coffee[]>([])
-  const [loaded, setLoaded] = useState(false)
+  const { data, loading, error, retry } = useAsync(() =>
+    coffeeService.listCoffees(),
+  )
 
   const [search, setSearch] = useState('')
   const [country, setCountry] = useState('')
@@ -29,12 +31,8 @@ export default function CoffeesPage() {
   const [roastLevel, setRoastLevel] = useState('')
   const [sort, setSort] = useState<SortOption>('recent')
 
-  useEffect(() => {
-    void coffeeService.listCoffees().then((list) => {
-      setAllCoffees(list)
-      setLoaded(true)
-    })
-  }, [])
+  const allCoffees = useMemo(() => data ?? [], [data])
+  const loaded = !loading && !error
 
   const countries = useMemo(
     () => [...new Set(allCoffees.map((c) => c.country))].sort(),
@@ -146,7 +144,9 @@ export default function CoffeesPage() {
 
       {/* 卡片墙 */}
       <div className="mt-8">
-        {!loaded ? (
+        {error ? (
+          <ErrorState onRetry={retry} />
+        ) : !loaded ? (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
               <div
