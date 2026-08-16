@@ -6,6 +6,8 @@ export interface Env {
   IMAGES: R2Bucket
   /** Pages 环境自动提供：回退到静态资源；独立 Worker 部署时不存在 */
   ASSETS?: { fetch: typeof fetch }
+  /** 写接口速率限制器（Durable Objects） */
+  RATE_LIMITER: DurableObjectNamespace
 }
 
 /** D1 中 coffees 表的行结构（snake_case） */

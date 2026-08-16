@@ -21,4 +21,20 @@
       "bucket_name": "coffee-atlas-imgs",
     },
   ],
+
+  // 写接口速率限制器（Durable Objects）
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "RATE_LIMITER",
+        "class_name": "RateLimiter",
+      },
+    ],
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["RateLimiter"],
+    },
+  ],
 }

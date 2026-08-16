@@ -12,3 +12,10 @@ database_id = "a8d94ea0-2f32-47ca-81b6-64dca2eee082"
 [[r2_buckets]]
 binding = "IMAGES"
 bucket_name = "coffee-atlas-imgs"
+
+# 写接口速率限制器（DO 类定义在独立 Worker coffee-atlas-api 中，
+# DO 调用走 Cloudflare 内部绑定，不依赖 workers.dev 域名可达性）
+[[durable_objects.bindings]]
+name = "RATE_LIMITER"
+class_name = "RateLimiter"
+script_name = "coffee-atlas-api"

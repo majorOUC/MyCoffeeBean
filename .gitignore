@@ -17,9 +17,10 @@ dist-ssr
 .env.*
 !.env.example
 !.env.development
-!.env.production
 
-# Cloudflare
+# Cloudflare secrets（本地开发密钥，勿提交）
+.dev.vars
+workers/.dev.vars
 .wrangler
 
 # Editor directories and files

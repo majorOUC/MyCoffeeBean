@@ -50,9 +50,13 @@ npm run deploy:pages      # 构建并部署到 Cloudflare Pages（前端 + 同�
 
 部署架构：前端静态资源与 API（`dist/_worker.js`，Hono）同域部署在 Cloudflare
 Pages，`/api/*` 无跨域；D1 与 R2 通过根目录 `wrangler.toml` 绑定。
-更新部署只需 `npm run deploy:pages`。
+更新部署只需 `npm run deploy:pages`（若改动 Durable Objects，先 `npm run deploy:api`）。
 另有独立 Worker 入口 `npm run deploy:api`（`coffee-atlas-api.<子域>.workers.dev`），
-与 Pages 共用同一 D1/R2，可作备用。
+与 Pages 共用同一 D1/R2/DO，可作备用。
+
+安全与防护：浏览类 GET 全部开放；写操作（POST/PUT/DELETE）经 Durable Objects
+按 IP 速率限制（每 IP 每分钟 20 次，超出返回 429，窗口自动重置），防止公网
+脚本恶意刷接口消耗 R2/D1 免费额度。正常使用远达不到该阈值。
 
 ## API 一览
 

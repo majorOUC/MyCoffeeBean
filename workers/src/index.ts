@@ -3,12 +3,33 @@ import { Hono } from 'hono'
 
 import { Database } from './db'
 import type { Env } from './db'
+import { RateLimiter } from './rateLimiter'
 import type { Coffee, CoffeeInput, TastingInput } from '../../src/types/coffee'
+
+export { RateLimiter }
 
 const app = new Hono<{ Bindings: Env }>()
 
 // 开发期前端 (5173/5174) 与 API (8787) 跨域；生产同域也不受影响
 app.use('/api/*', cors())
+
+// 写保护：按 IP 速率限制（Durable Objects 计数），同一 IP 每分钟最多 20 次写操作，
+// 防止公网脚本恶意刷接口消耗 R2/D1 额度。GET 不受影响（浏览始终开放）。
+const WRITE_LIMIT_PER_MIN = 20
+
+app.use('/api/*', async (c, next) => {
+  if (!['GET', 'HEAD', 'OPTIONS'].includes(c.req.method)) {
+    const ip = c.req.header('CF-Connecting-IP') ?? 'local-dev'
+    const stub = c.env.RATE_LIMITER.get(c.env.RATE_LIMITER.idFromName(ip))
+    const check = await stub.fetch(
+      `https://limiter/check?limit=${WRITE_LIMIT_PER_MIN}`,
+    )
+    if (check.status === 429) {
+      return c.json({ error: '操作太频繁，请一分钟后再试' }, 429)
+    }
+  }
+  await next()
+})
 
 app.get('/api/health', (c) => c.json({ ok: true }))
 
