@@ -13,6 +13,7 @@ import HomePage from '@/pages/HomePage'
 import LoginPage from '@/pages/LoginPage'
 import MapPage from '@/pages/MapPage'
 import StatsPage from '@/pages/StatsPage'
+import UserManagementPage from '@/pages/UserManagementPage'
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
               <Route path="diary/new" element={<DiaryFormPage />} />
               <Route path="diary/:id" element={<DiaryDetailPage />} />
               <Route path="diary/:id/edit" element={<DiaryFormPage />} />
+              <Route path="admin/users" element={<UserManagementPage />} />
               <Route path="stats" element={<StatsPage />} />
               <Route path="map" element={<MapPage />} />
               <Route path="login" element={<LoginPage />} />

@@ -55,6 +55,9 @@ export interface Comment {
   createdAt: string
 }
 
+/** 用户角色 */
+export type UserRole = 'user' | 'publisher' | 'admin'
+
 /** 新增评论时的输入 */
 export type CommentInput = Pick<Comment, 'content' | 'author'>
 

@@ -113,7 +113,7 @@ app.post('/api/auth/login', async (c) => {
   const token = await createToken({
     id: userRow.id,
     username: userRow.username,
-    role: userRow.role as 'admin' | 'user',
+    role: userRow.role as 'admin' | 'publisher' | 'user',
   })
 
   return c.json({
@@ -167,26 +167,31 @@ app.put('/api/users/:id', async (c) => {
     return c.json({ error: '需要管理员权限' }, 403)
   }
 
-  const db = new Database(c.env.DB)
-  const user = await db.getUserById(c.req.param('id'))
-  if (!user) return c.json({ error: '用户不存在' }, 404)
+  try {
+    const db = new Database(c.env.DB)
+    const user = await db.getUserById(c.req.param('id'))
+    if (!user) return c.json({ error: '用户不存在' }, 404)
 
-  const input = await c.req.json<{ username?: string; password?: string; role?: string }>()
-  const updates: { username?: string; passwordHash?: string; role?: string } = {}
+    const input = await c.req.json<{ username?: string; password?: string; role?: string }>()
+    const updates: { username?: string; passwordHash?: string; role?: string } = {}
 
-  if (input.username?.trim()) {
-    updates.username = input.username.trim()
-  }
-  if (input.password) {
-    updates.passwordHash = await hashPassword(input.password)
-  }
-  if (input.role && ['admin', 'user'].includes(input.role)) {
-    updates.role = input.role
-  }
+    if (input.username?.trim()) {
+      updates.username = input.username.trim()
+    }
+    if (input.password) {
+      updates.passwordHash = await hashPassword(input.password)
+    }
+    if (input.role && ['admin', 'publisher', 'user'].includes(input.role)) {
+      updates.role = input.role
+    }
 
-  await db.updateUser(c.req.param('id'), updates)
-  const updated = await db.getUserById(c.req.param('id'))
-  return c.json({ user: updated })
+    await db.updateUser(c.req.param('id'), updates)
+    const updated = await db.getUserById(c.req.param('id'))
+    return c.json({ user: updated })
+  } catch (err) {
+    console.error('Update user error:', err)
+    return c.json({ error: '更新用户失败', details: String(err) }, 500)
+  }
 })
 
 // 管理员：删除用户
@@ -225,11 +230,11 @@ app.get('/api/coffees/:id', async (c) => {
   return c.json(coffee)
 })
 
-// 添加咖啡豆（需要 admin 权限）
+// 添加咖啡豆（需要 admin 或 publisher 权限）
 app.post('/api/coffees', async (c) => {
   const authUser = await getAuthUser(c)
-  if (!authUser || authUser.role !== 'admin') {
-    return c.json({ error: '需要管理员权限' }, 403)
+  if (!authUser || (authUser.role !== 'admin' && authUser.role !== 'publisher')) {
+    return c.json({ error: '需要发布权限' }, 403)
   }
 
   const input = await c.req.json<CoffeeInput>()
@@ -248,11 +253,11 @@ app.post('/api/coffees', async (c) => {
   return c.json(coffee, 201)
 })
 
-// 更新咖啡豆（需要 admin 权限）
+// 更新咖啡豆（需要 admin 或 publisher 权限）
 app.put('/api/coffees/:id', async (c) => {
   const authUser = await getAuthUser(c)
-  if (!authUser || authUser.role !== 'admin') {
-    return c.json({ error: '需要管理员权限' }, 403)
+  if (!authUser || (authUser.role !== 'admin' && authUser.role !== 'publisher')) {
+    return c.json({ error: '需要发布权限' }, 403)
   }
 
   const db = new Database(c.env.DB)
@@ -276,11 +281,11 @@ app.put('/api/coffees/:id', async (c) => {
   return c.json(updated)
 })
 
-// 删除咖啡豆（需要 admin 权限）
+// 删除咖啡豆（需要 admin 或 publisher 权限）
 app.delete('/api/coffees/:id', async (c) => {
   const authUser = await getAuthUser(c)
-  if (!authUser || authUser.role !== 'admin') {
-    return c.json({ error: '需要管理员权限' }, 403)
+  if (!authUser || (authUser.role !== 'admin' && authUser.role !== 'publisher')) {
+    return c.json({ error: '需要发布权限' }, 403)
   }
 
   const db = new Database(c.env.DB)

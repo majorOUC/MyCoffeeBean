@@ -52,7 +52,7 @@ export default function AddCoffeePage() {
   const navigate = useNavigate()
   const toast = useToast()
   const { user } = useAuth()
-  const isAdmin = user?.role === 'admin'
+  const canPublish = user?.role === 'admin' || user?.role === 'publisher'
 
   const [form, setForm] = useState<CoffeeInput>(emptyForm)
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -69,8 +69,8 @@ export default function AddCoffeePage() {
     })
   }, [editId])
 
-  // 非管理员不能访问此页面
-  if (!isAdmin) {
+  // 无发布权限不能访问此页面
+  if (!canPublish) {
     return (
       <div className="py-16 text-center">
         <h1 className="mb-4 font-display text-2xl font-bold text-coffee-900">

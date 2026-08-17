@@ -24,7 +24,7 @@ function CoffeeDetail({ id }: { id: string }) {
   const navigate = useNavigate()
   const toast = useToast()
   const { user } = useAuth()
-  const isAdmin = user?.role === 'admin'
+  const canPublish = user?.role === 'admin' || user?.role === 'publisher'
   const [coffee, setCoffee] = useState<Coffee | null | undefined>(undefined)
   const [comments, setComments] = useState<Comment[]>([])
   const [loadError, setLoadError] = useState(false)
@@ -148,7 +148,7 @@ function CoffeeDetail({ id }: { id: string }) {
               <p className="mt-1 text-ink-400">{coffee.roaster}</p>
             </div>
             <div className="flex gap-2">
-              {isAdmin && (
+              {canPublish && (
                 <>
                   <Link
                     to={`/add?id=${coffee.id}`}

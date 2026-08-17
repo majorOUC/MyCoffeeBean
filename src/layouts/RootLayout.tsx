@@ -7,10 +7,10 @@ import { useAuth } from '@/components/AuthContext'
 const navItems = [
   { to: '/', label: '首页' },
   { to: '/coffees', label: '图鉴' },
-  { to: '/add', label: '记录', requireAdmin: true },
   { to: '/diary', label: '日记', requireAdmin: true },
   { to: '/stats', label: '统计' },
   { to: '/map', label: '地图' },
+  { to: '/admin/users', label: '用户管理', requireAdmin: true },
 ]
 
 const THEME_KEY = 'coffee-atlas:theme'

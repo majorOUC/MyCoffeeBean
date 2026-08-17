@@ -5,7 +5,7 @@ const TOKEN_EXPIRY = 7 * 24 * 60 * 60 * 1000 // 7 天
 export interface AuthUser {
   id: string
   username: string
-  role: 'admin' | 'user'
+  role: 'admin' | 'publisher' | 'user'
 }
 
 /** 密码哈希（PBKDF2-SHA256，Workers 原生支持） */

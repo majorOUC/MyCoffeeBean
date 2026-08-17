@@ -6,13 +6,15 @@ import {
   type ReactNode,
 } from 'react'
 
+import type { UserRole } from '@/types/coffee'
+
 const TOKEN_KEY = 'coffee-atlas:token'
 const USER_KEY = 'coffee-atlas:user'
 
 export interface AuthUser {
   id: string
   username: string
-  role: 'admin' | 'user'
+  role: UserRole
 }
 
 interface AuthState {

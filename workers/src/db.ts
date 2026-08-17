@@ -54,7 +54,7 @@ interface UserRow {
 export interface User {
   id: string
   username: string
-  role: 'admin' | 'user'
+  role: 'admin' | 'publisher' | 'user'
   createdAt: string
 }
 
@@ -104,7 +104,7 @@ function rowToUser(row: UserRow): User {
   return {
     id: row.id,
     username: row.username,
-    role: row.role as 'admin' | 'user',
+    role: row.role as 'admin' | 'publisher' | 'user',
     createdAt: row.created_at,
   }
 }
