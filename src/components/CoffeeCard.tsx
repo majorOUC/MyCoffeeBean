@@ -42,8 +42,13 @@ export default function CoffeeCard({ coffee }: { coffee: Coffee }) {
           </span>
         </div>
 
-        <div className="mt-3 border-t border-coffee-200/60 pt-3">
+        <div className="mt-3 flex items-center justify-between border-t border-coffee-200/60 pt-3">
           <RatingStars value={coffee.rating} size="sm" />
+          {coffee.pricePerGram && (
+            <span className="text-xs font-medium text-coffee-600">
+              ¥{coffee.pricePerGram.toFixed(2)}/g
+            </span>
+          )}
         </div>
       </div>
     </Link>
