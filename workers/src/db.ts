@@ -242,6 +242,22 @@ export class Database {
       .run()
   }
 
+  async deleteComment(id: string): Promise<boolean> {
+    const result = await this.db
+      .prepare('DELETE FROM comments WHERE id = ?')
+      .bind(id)
+      .run()
+    return (result.meta.changes ?? 0) > 0
+  }
+
+  async getCommentById(id: string): Promise<Comment | null> {
+    const row = await this.db
+      .prepare('SELECT * FROM comments WHERE id = ?')
+      .bind(id)
+      .first<CommentRow>()
+    return row ? rowToComment(row) : null
+  }
+
   async getStats() {
     const overview = await this.db
       .prepare(

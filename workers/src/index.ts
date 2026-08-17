@@ -272,6 +272,26 @@ app.post('/api/coffees/:id/comments', async (c) => {
   return c.json(comment, 201)
 })
 
+// 删除评论（管理员或评论作者可以删除）
+app.delete('/api/comments/:id', async (c) => {
+  const authUser = await getAuthUser(c)
+  if (!authUser) {
+    return c.json({ error: '请先登录' }, 401)
+  }
+
+  const db = new Database(c.env.DB)
+  const comment = await db.getCommentById(c.req.param('id'))
+  if (!comment) return c.json({ error: 'comment not found' }, 404)
+
+  // 只有管理员或评论作者可以删除
+  if (authUser.role !== 'admin' && comment.userId !== authUser.id) {
+    return c.json({ error: '只能删除自己的评论' }, 403)
+  }
+
+  await db.deleteComment(comment.id)
+  return c.json({ ok: true })
+})
+
 /* -------------------------------- stats -------------------------------- */
 
 app.get('/api/stats', async (c) => {
