@@ -105,13 +105,14 @@ export interface ListParams {
   country?: string
   process?: string
   roastLevel?: string
-  sort?: 'rating' | 'recent' | 'name'
+  sort?: 'rating' | 'recent' | 'name' | 'price'
 }
 
 const SORT_SQL: Record<string, string> = {
   rating: 'rating DESC',
   name: 'name COLLATE NOCASE ASC',
   recent: 'datetime(created_at) DESC',
+  price: 'price_per_gram IS NULL ASC, price_per_gram ASC',
 }
 
 export class Database {

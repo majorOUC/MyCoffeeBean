@@ -12,12 +12,13 @@ import {
 import { useAsync } from '@/hooks/useAsync'
 import { coffeeService } from '@/services/coffeeService'
 
-type SortOption = 'recent' | 'rating' | 'name'
+type SortOption = 'recent' | 'rating' | 'name' | 'price'
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: 'recent', label: '最近添加' },
   { value: 'rating', label: '评分最高' },
   { value: 'name', label: '名称' },
+  { value: 'price', label: '克价最低' },
 ]
 
 export default function CoffeesPage() {

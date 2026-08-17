@@ -64,7 +64,7 @@ export interface CoffeeQuery {
   country?: string
   process?: string
   roastLevel?: string
-  sort?: 'rating' | 'recent' | 'name'
+  sort?: 'rating' | 'recent' | 'name' | 'price'
 }
 
 /** 单个分布项 */

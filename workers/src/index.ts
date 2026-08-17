@@ -213,7 +213,7 @@ app.get('/api/coffees', async (c) => {
     country: c.req.query('country'),
     process: c.req.query('process'),
     roastLevel: c.req.query('roastLevel'),
-    sort: (c.req.query('sort') as 'rating' | 'recent' | 'name') ?? 'recent',
+    sort: (c.req.query('sort') as 'rating' | 'recent' | 'name' | 'price') ?? 'recent',
   })
   return c.json(coffees)
 })
