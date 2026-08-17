@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 
+import { useAuth } from '@/components/AuthContext'
+
 const navItems = [
   { to: '/', label: '首页' },
   { to: '/coffees', label: '图鉴' },
-  { to: '/add', label: '记录' },
+  { to: '/add', label: '记录', requireAdmin: true },
   { to: '/stats', label: '统计' },
   { to: '/map', label: '地图' },
 ]
@@ -13,6 +15,7 @@ const THEME_KEY = 'coffee-atlas:theme'
 
 export default function RootLayout() {
   const location = useLocation()
+  const { user, logout } = useAuth()
   const [dark, setDark] = useState(() =>
     document.documentElement.classList.contains('dark'),
   )
@@ -41,21 +44,23 @@ export default function RootLayout() {
 
           <div className="flex min-w-0 items-center gap-1 sm:gap-2">
             <nav className="flex items-center gap-0.5 overflow-x-auto sm:gap-2">
-              {navItems.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  className={({ isActive }) =>
-                    `shrink-0 rounded-full px-2.5 py-1.5 text-sm transition-colors sm:px-3 ${
-                      isActive
-                        ? 'bg-coffee-700 text-cream-50'
-                        : 'text-ink-500 hover:bg-coffee-100 hover:text-coffee-800'
-                    }`
-                  }
-                >
-                  {item.label}
-                </NavLink>
-              ))}
+              {navItems
+                .filter((item) => !item.requireAdmin || user?.role === 'admin')
+                .map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    className={({ isActive }) =>
+                      `shrink-0 rounded-full px-2.5 py-1.5 text-sm transition-colors sm:px-3 ${
+                        isActive
+                          ? 'bg-coffee-700 text-cream-50'
+                          : 'text-ink-500 hover:bg-coffee-100 hover:text-coffee-800'
+                      }`
+                    }
+                  >
+                    {item.label}
+                  </NavLink>
+                ))}
             </nav>
             <button
               type="button"
@@ -65,6 +70,32 @@ export default function RootLayout() {
             >
               <span aria-hidden>{dark ? '☀️' : '🌙'}</span>
             </button>
+            {user ? (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-ink-500">
+                  {user.username}
+                  {user.role === 'admin' && (
+                    <span className="ml-1 rounded-full bg-coffee-200 px-1.5 py-0.5 text-xs text-coffee-700">
+                      管理员
+                    </span>
+                  )}
+                </span>
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="rounded-full px-2.5 py-1.5 text-sm text-ink-500 transition-colors hover:bg-coffee-100 hover:text-coffee-800"
+                >
+                  退出
+                </button>
+              </div>
+            ) : (
+              <NavLink
+                to="/login"
+                className="rounded-full px-2.5 py-1.5 text-sm text-ink-500 transition-colors hover:bg-coffee-100 hover:text-coffee-800"
+              >
+                登录
+              </NavLink>
+            )}
           </div>
         </div>
       </header>

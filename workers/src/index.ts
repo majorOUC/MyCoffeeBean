@@ -1,6 +1,8 @@
 import { cors } from 'hono/cors'
 import { Hono } from 'hono'
 
+import { createToken, hashPassword, verifyPassword, verifyToken } from './auth'
+import type { AuthUser } from './auth'
 import { Database } from './db'
 import type { Env } from './db'
 import { RateLimiter } from './rateLimiter'
@@ -33,6 +35,119 @@ app.use('/api/*', async (c, next) => {
 
 app.get('/api/health', (c) => c.json({ ok: true }))
 
+/* -------------------------------- auth -------------------------------- */
+
+// 注册（仅允许第一个用户成为 admin）
+app.post('/api/auth/register', async (c) => {
+  const { username, password } = await c.req.json<{
+    username: string
+    password: string
+  }>()
+  if (!username?.trim() || !password) {
+    return c.json({ error: '用户名和密码不能为空' }, 400)
+  }
+  if (username.trim().length < 2) {
+    return c.json({ error: '用户名至少 2 个字符' }, 400)
+  }
+  if (password.length < 6) {
+    return c.json({ error: '密码至少 6 位' }, 400)
+  }
+
+  const db = new Database(c.env.DB)
+  const existing = await db.getUserByUsername(username.trim())
+  if (existing) {
+    return c.json({ error: '用户名已存在' }, 409)
+  }
+
+  // 检查是否是第一个用户（自动成为 admin）
+  // 简化：如果还没有用户，第一个注册的成为 admin
+  const allUsers = await db.listUsers()
+  const isFirstUser = allUsers.length === 0
+
+  const passwordHash = await hashPassword(password)
+  const user = {
+    id: crypto.randomUUID(),
+    username: username.trim(),
+    passwordHash,
+    role: isFirstUser ? 'admin' as const : 'user' as const,
+  }
+  await db.createUser(user)
+
+  const token = await createToken({
+    id: user.id,
+    username: user.username,
+    role: user.role,
+  })
+
+  return c.json({
+    token,
+    user: {
+      id: user.id,
+      username: user.username,
+      role: user.role,
+    },
+  })
+})
+
+// 登录
+app.post('/api/auth/login', async (c) => {
+  const { username, password } = await c.req.json<{
+    username: string
+    password: string
+  }>()
+  if (!username?.trim() || !password) {
+    return c.json({ error: '用户名和密码不能为空' }, 400)
+  }
+
+  const db = new Database(c.env.DB)
+  const userRow = await db.getUserByUsername(username.trim())
+  if (!userRow) {
+    return c.json({ error: '用户名或密码错误' }, 401)
+  }
+
+  const valid = await verifyPassword(password, userRow.password_hash)
+  if (!valid) {
+    return c.json({ error: '用户名或密码错误' }, 401)
+  }
+
+  const token = await createToken({
+    id: userRow.id,
+    username: userRow.username,
+    role: userRow.role as 'admin' | 'user',
+  })
+
+  return c.json({
+    token,
+    user: {
+      id: userRow.id,
+      username: userRow.username,
+      role: userRow.role,
+    },
+  })
+})
+
+// 获取当前用户信息
+app.get('/api/auth/me', async (c) => {
+  const authHeader = c.req.header('Authorization')
+  if (!authHeader?.startsWith('Bearer ')) {
+    return c.json({ error: '未登录' }, 401)
+  }
+
+  const token = authHeader.slice(7)
+  const authUser = await verifyToken(token)
+  if (!authUser) {
+    return c.json({ error: '登录已过期，请重新登录' }, 401)
+  }
+
+  const db = new Database(c.env.DB)
+  const user = await db.getUserById(authUser.id)
+  if (!user) {
+    return c.json({ error: '用户不存在' }, 404)
+  }
+
+  return c.json({ user })
+})
+
 /* ------------------------------- coffees ------------------------------- */
 
 app.get('/api/coffees', async (c) => {
@@ -54,7 +169,13 @@ app.get('/api/coffees/:id', async (c) => {
   return c.json(coffee)
 })
 
+// 添加咖啡豆（需要 admin 权限）
 app.post('/api/coffees', async (c) => {
+  const authUser = await getAuthUser(c)
+  if (!authUser || authUser.role !== 'admin') {
+    return c.json({ error: '需要管理员权限' }, 403)
+  }
+
   const input = await c.req.json<CoffeeInput>()
   const invalid = validateCoffee(input)
   if (invalid) return c.json({ error: invalid }, 400)
@@ -71,7 +192,13 @@ app.post('/api/coffees', async (c) => {
   return c.json(coffee, 201)
 })
 
+// 更新咖啡豆（需要 admin 权限）
 app.put('/api/coffees/:id', async (c) => {
+  const authUser = await getAuthUser(c)
+  if (!authUser || authUser.role !== 'admin') {
+    return c.json({ error: '需要管理员权限' }, 403)
+  }
+
   const db = new Database(c.env.DB)
   const existing = await db.getCoffee(c.req.param('id'))
   if (!existing) return c.json({ error: 'not found' }, 404)
@@ -93,7 +220,13 @@ app.put('/api/coffees/:id', async (c) => {
   return c.json(updated)
 })
 
+// 删除咖啡豆（需要 admin 权限）
 app.delete('/api/coffees/:id', async (c) => {
+  const authUser = await getAuthUser(c)
+  if (!authUser || authUser.role !== 'admin') {
+    return c.json({ error: '需要管理员权限' }, 403)
+  }
+
   const db = new Database(c.env.DB)
   const existing = await db.getCoffee(c.req.param('id'))
   if (!existing) return c.json({ error: 'not found' }, 404)
@@ -110,7 +243,13 @@ app.get('/api/coffees/:id/comments', async (c) => {
   return c.json(comments)
 })
 
+// 发表评论（需要登录）
 app.post('/api/coffees/:id/comments', async (c) => {
+  const authUser = await getAuthUser(c)
+  if (!authUser) {
+    return c.json({ error: '请先登录' }, 401)
+  }
+
   const coffeeId = c.req.param('id')
   const db = new Database(c.env.DB)
   const coffee = await db.getCoffee(coffeeId)
@@ -125,7 +264,8 @@ app.post('/api/coffees/:id/comments', async (c) => {
     id: crypto.randomUUID(),
     coffeeId,
     content: input.content.trim(),
-    author: input.author?.trim() || '匿名',
+    author: authUser.username,
+    userId: authUser.id,
     createdAt: new Date().toISOString(),
   }
   await db.createComment(comment)
@@ -150,6 +290,11 @@ const IMAGE_TYPES = new Set([
 const MAX_IMAGE_BYTES = 8 * 1024 * 1024
 
 app.post('/api/images', async (c) => {
+  const authUser = await getAuthUser(c)
+  if (!authUser || authUser.role !== 'admin') {
+    return c.json({ error: '需要管理员权限' }, 403)
+  }
+
   const form = await c.req.formData()
   const file = form.get('file')
   if (!(file instanceof File)) {
@@ -181,6 +326,11 @@ app.get('/api/images/:key', async (c) => {
 })
 
 app.delete('/api/images/:key', async (c) => {
+  const authUser = await getAuthUser(c)
+  if (!authUser || authUser.role !== 'admin') {
+    return c.json({ error: '需要管理员权限' }, 403)
+  }
+
   await c.env.IMAGES.delete(c.req.param('key'))
   return c.json({ ok: true })
 })
@@ -192,6 +342,16 @@ app.all('*', async (c) => {
 })
 
 /* ------------------------------- helpers ------------------------------- */
+
+/** 从请求中提取认证用户 */
+async function getAuthUser(c: {
+  req: { header: (name: string) => string | undefined }
+}): Promise<AuthUser | null> {
+  const authHeader = c.req.header('Authorization')
+  if (!authHeader?.startsWith('Bearer ')) return null
+  const token = authHeader.slice(7)
+  return verifyToken(token)
+}
 
 function validateCoffee(input: CoffeeInput): string | null {
   if (!input.name?.trim()) return 'name is required'

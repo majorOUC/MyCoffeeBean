@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
+import { useAuth } from '@/components/AuthContext'
 import CoffeeCover from '@/components/CoffeeCover'
 import EmptyState from '@/components/EmptyState'
 import ErrorState from '@/components/ErrorState'
@@ -21,12 +22,14 @@ export default function CoffeeDetailPage() {
 function CoffeeDetail({ id }: { id: string }) {
   const navigate = useNavigate()
   const toast = useToast()
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'admin'
   const [coffee, setCoffee] = useState<Coffee | null | undefined>(undefined)
   const [comments, setComments] = useState<Comment[]>([])
   const [loadError, setLoadError] = useState(false)
   const [commentForm, setCommentForm] = useState<CommentInput>({
     content: '',
-    author: '咖啡爱好者',
+    author: user?.username ?? '',
   })
   const [submitting, setSubmitting] = useState(false)
 
@@ -133,19 +136,23 @@ function CoffeeDetail({ id }: { id: string }) {
               <p className="mt-1 text-ink-400">{coffee.roaster}</p>
             </div>
             <div className="flex gap-2">
-              <Link
-                to={`/add?id=${coffee.id}`}
-                className="rounded-full border border-coffee-300 px-4 py-1.5 text-sm text-coffee-700 transition-colors hover:bg-coffee-100"
-              >
-                编辑
-              </Link>
-              <button
-                type="button"
-                onClick={() => void handleDelete()}
-                className="rounded-full border border-red-200 px-4 py-1.5 text-sm text-red-600 transition-colors hover:bg-red-50"
-              >
-                删除
-              </button>
+              {isAdmin && (
+                <>
+                  <Link
+                    to={`/add?id=${coffee.id}`}
+                    className="rounded-full border border-coffee-300 px-4 py-1.5 text-sm text-coffee-700 transition-colors hover:bg-coffee-100"
+                  >
+                    编辑
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => void handleDelete()}
+                    className="rounded-full border border-red-200 px-4 py-1.5 text-sm text-red-600 transition-colors hover:bg-red-50"
+                  >
+                    删除
+                  </button>
+                </>
+              )}
             </div>
           </div>
 
@@ -212,40 +219,37 @@ function CoffeeDetail({ id }: { id: string }) {
         </h2>
 
         {/* 发表评论表单 */}
-        <form
-          onSubmit={(e) => void handleSubmitComment(e)}
-          className="mb-6 rounded-2xl border border-coffee-200/70 bg-cream-50 p-5 shadow-sm"
-        >
-          <div className="mb-3">
-            <label className="mb-1.5 block text-xs font-medium tracking-wide text-ink-500">
-              作者
-            </label>
-            <input
-              type="text"
-              value={commentForm.author}
-              onChange={(e) =>
-                setCommentForm((f) => ({ ...f, author: e.target.value }))
-              }
-              className="w-full rounded-xl border border-coffee-300/70 bg-cream-50 px-3.5 py-2 text-sm text-ink-900 placeholder:text-ink-400 focus:border-coffee-500 focus:ring-2 focus:ring-coffee-300/40 focus:outline-none"
-              placeholder="你的名字"
-            />
+        {user ? (
+          <form
+            onSubmit={(e) => void handleSubmitComment(e)}
+            className="mb-6 rounded-2xl border border-coffee-200/70 bg-cream-50 p-5 shadow-sm"
+          >
+            <div className="mb-3 flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-coffee-200 text-sm font-medium text-coffee-700">
+                {user.username.charAt(0)}
+              </div>
+              <span className="font-medium text-coffee-900">{user.username}</span>
+            </div>
+            <div className="mb-3">
+              <textarea
+                value={commentForm.content}
+                onChange={(e) => setCommentForm((f) => ({ ...f, content: e.target.value }))}
+                className="w-full rounded-xl border border-coffee-300/70 bg-cream-50 px-3.5 py-2 text-sm text-ink-900 placeholder:text-ink-400 focus:border-coffee-500 focus:ring-2 focus:ring-coffee-300/40 focus:outline-none min-h-24 resize-y"
+                placeholder="分享你对这款豆子的看法..."
+                required
+              />
+            </div>
+            <button type="submit" disabled={submitting || !commentForm.content.trim()} className="rounded-full bg-coffee-700 px-5 py-2 text-sm font-medium text-cream-50 shadow-sm transition-all hover:bg-coffee-800 hover:shadow-md disabled:opacity-50">
+              {submitting ? '发布中...' : '发布评论'}
+            </button>
+          </form>
+        ) : (
+          <div className="mb-6 rounded-2xl border border-dashed border-coffee-300/70 bg-cream-50/50 p-5 text-center">
+            <p className="text-sm text-ink-400">
+              <Link to="/login" className="text-coffee-700 hover:underline">登录</Link> 后才能发表评论
+            </p>
           </div>
-          <div className="mb-3">
-            <label className="mb-1.5 block text-xs font-medium tracking-wide text-ink-500">
-              评论内容 *
-            </label>
-            <textarea
-              value={commentForm.content}
-              onChange={(e) => setCommentForm((f) => ({ ...f, content: e.target.value }))}
-              className="w-full rounded-xl border border-coffee-300/70 bg-cream-50 px-3.5 py-2 text-sm text-ink-900 placeholder:text-ink-400 focus:border-coffee-500 focus:ring-2 focus:ring-coffee-300/40 focus:outline-none min-h-24 resize-y"
-              placeholder="分享你对这款豆子的看法..."
-              required
-            />
-          </div>
-          <button type="submit" disabled={submitting || !commentForm.content.trim()} className="rounded-full bg-coffee-700 px-5 py-2 text-sm font-medium text-cream-50 shadow-sm transition-all hover:bg-coffee-800 hover:shadow-md disabled:opacity-50">
-            {submitting ? '发布中...' : '发布评论'}
-          </button>
-        </form>
+        )}
 
         {comments.length === 0 ? (
           <EmptyState emoji="💬" title="还没有评论" description="成为第一个评论这款豆子的人吧。" />

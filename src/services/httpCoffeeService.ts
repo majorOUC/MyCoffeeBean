@@ -26,6 +26,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   if (typeof init?.body === 'string' && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json')
   }
+  // 添加 auth token（如果存在）
+  const token = localStorage.getItem('coffee-atlas:token')
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`)
+  }
   const res = await fetch(`${API_BASE_URL}${path}`, { ...init, headers })
   if (!res.ok) {
     let message = `请求失败（${res.status}）`

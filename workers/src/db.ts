@@ -36,7 +36,25 @@ interface CommentRow {
   coffee_id: string
   content: string
   author: string
+  user_id: string | null
   created_at: string
+}
+
+/** D1 中 users 表的行结构 */
+interface UserRow {
+  id: string
+  username: string
+  password_hash: string
+  role: string
+  created_at: string
+}
+
+/** 用户信息（不含密码） */
+export interface User {
+  id: string
+  username: string
+  role: 'admin' | 'user'
+  createdAt: string
 }
 
 function rowToCoffee(row: CoffeeRow): Coffee {
@@ -66,6 +84,16 @@ function rowToComment(row: CommentRow): Comment {
     coffeeId: row.coffee_id,
     content: row.content,
     author: row.author,
+    userId: row.user_id ?? undefined,
+    createdAt: row.created_at,
+  }
+}
+
+function rowToUser(row: UserRow): User {
+  return {
+    id: row.id,
+    username: row.username,
+    role: row.role as 'admin' | 'user',
     createdAt: row.created_at,
   }
 }
@@ -200,14 +228,15 @@ export class Database {
   async createComment(comment: Comment): Promise<void> {
     await this.db
       .prepare(
-        `INSERT INTO comments (id, coffee_id, content, author, created_at)
-         VALUES (?, ?, ?, ?, ?)`,
+        `INSERT INTO comments (id, coffee_id, content, author, user_id, created_at)
+         VALUES (?, ?, ?, ?, ?, ?)`,
       )
       .bind(
         comment.id,
         comment.coffeeId,
         comment.content,
         comment.author,
+        comment.userId ?? null,
         comment.createdAt,
       )
       .run()
@@ -271,5 +300,44 @@ export class Database {
       )
       .all<{ label: string | number; count: number }>()
     return results.map((r) => ({ label: String(r.label), count: r.count }))
+  }
+
+  /* ------------------------------- users ------------------------------- */
+
+  async getUserByUsername(username: string): Promise<UserRow | null> {
+    return this.db
+      .prepare('SELECT * FROM users WHERE username = ?')
+      .bind(username)
+      .first<UserRow>()
+  }
+
+  async getUserById(id: string): Promise<User | null> {
+    const row = await this.db
+      .prepare('SELECT * FROM users WHERE id = ?')
+      .bind(id)
+      .first<UserRow>()
+    return row ? rowToUser(row) : null
+  }
+
+  async createUser(user: {
+    id: string
+    username: string
+    passwordHash: string
+    role: 'admin' | 'user'
+  }): Promise<void> {
+    await this.db
+      .prepare(
+        `INSERT INTO users (id, username, password_hash, role)
+         VALUES (?, ?, ?, ?)`,
+      )
+      .bind(user.id, user.username, user.passwordHash, user.role)
+      .run()
+  }
+
+  async listUsers(): Promise<User[]> {
+    const { results } = await this.db
+      .prepare('SELECT * FROM users ORDER BY created_at ASC')
+      .all<UserRow>()
+    return results.map(rowToUser)
   }
 }

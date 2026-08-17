@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
+import { useAuth } from '@/components/AuthContext'
 import RatingStars from '@/components/RatingStars'
 import Tag from '@/components/Tag'
 import { useToast } from '@/components/toastContext'
@@ -50,10 +51,13 @@ export default function AddCoffeePage() {
   const editId = params.get('id')
   const navigate = useNavigate()
   const toast = useToast()
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'admin'
 
   const [form, setForm] = useState<CoffeeInput>(emptyForm)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -64,6 +68,24 @@ export default function AddCoffeePage() {
       setForm(rest)
     })
   }, [editId])
+
+  // 非管理员不能访问此页面
+  if (!isAdmin) {
+    return (
+      <div className="py-16 text-center">
+        <h1 className="mb-4 font-display text-2xl font-bold text-coffee-900">
+          权限不足
+        </h1>
+        <p className="mb-6 text-ink-400">只有管理员才能添加或编辑咖啡豆。</p>
+        <Link
+          to="/coffees"
+          className="rounded-full bg-coffee-700 px-6 py-2.5 text-sm font-medium text-cream-50 transition-colors hover:bg-coffee-800"
+        >
+          返回图鉴
+        </Link>
+      </div>
+    )
+  }
 
   const set = <K extends keyof CoffeeInput>(key: K, value: CoffeeInput[K]) => {
     setForm((f) => ({ ...f, [key]: value }))
@@ -78,8 +100,6 @@ export default function AddCoffeePage() {
         : [...f.flavorNotes, note],
     }))
   }
-
-  const [uploading, setUploading] = useState(false)
 
   const handleFile = async (file: File) => {
     setUploading(true)

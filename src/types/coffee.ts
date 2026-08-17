@@ -39,8 +39,10 @@ export interface Comment {
   coffeeId: string
   /** 评论内容 */
   content: string
-  /** 作者名（可选） */
+  /** 作者名 */
   author: string
+  /** 评论者用户 ID（可选，未登录时为空） */
+  userId?: string
   createdAt: string
 }
 
