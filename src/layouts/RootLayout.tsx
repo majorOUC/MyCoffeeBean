@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 
+import Avatar from '@/components/Avatar'
 import { useAuth } from '@/components/AuthContext'
 
 const navItems = [
@@ -72,6 +73,7 @@ export default function RootLayout() {
             </button>
             {user ? (
               <div className="flex items-center gap-2">
+                <Avatar username={user.username} size="sm" />
                 <span className="text-sm text-ink-500">
                   {user.username}
                   {user.role === 'admin' && (

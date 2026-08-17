@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
+import Avatar from '@/components/Avatar'
 import { useAuth } from '@/components/AuthContext'
 import CoffeeCover from '@/components/CoffeeCover'
 import EmptyState from '@/components/EmptyState'
@@ -225,9 +226,7 @@ function CoffeeDetail({ id }: { id: string }) {
             className="mb-6 rounded-2xl border border-coffee-200/70 bg-cream-50 p-5 shadow-sm"
           >
             <div className="mb-3 flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-coffee-200 text-sm font-medium text-coffee-700">
-                {user.username.charAt(0)}
-              </div>
+              <Avatar username={user.username} size="md" />
               <span className="font-medium text-coffee-900">{user.username}</span>
             </div>
             <div className="mb-3">
@@ -259,7 +258,7 @@ function CoffeeDetail({ id }: { id: string }) {
               <div key={comment.id} className="rounded-2xl border border-coffee-200/70 bg-cream-50 p-5 shadow-sm">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-coffee-200 text-sm font-medium text-coffee-700">{comment.author.charAt(0)}</div>
+                    <Avatar username={comment.author} size="md" />
                     <span className="font-medium text-coffee-900">{comment.author}</span>
                   </div>
                   <span className="text-xs text-ink-400">{timeAgo(comment.createdAt)}</span>
