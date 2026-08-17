@@ -1,7 +1,6 @@
-@import 'tailwindcss';
-
-/* class 策略的暗色模式：html.dark */
-@custom-variant dark (&:where(.dark, .dark *));
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /*
  * Coffee Atlas 设计基调
@@ -11,81 +10,75 @@
  * - 叶绿 leaf：少量点缀（成功 / 产地 / 生豆意象）
  * 组件一律引用语义色，暗色模式通过 .dark 作用域整体反转色板。
  */
-@theme {
-  --color-coffee-50: #faf6f1;
-  --color-coffee-100: #f1e8de;
-  --color-coffee-200: #e2d1bf;
-  --color-coffee-300: #cdb298;
-  --color-coffee-400: #b58f6f;
-  --color-coffee-500: #9c7350;
-  --color-coffee-600: #825c3e;
-  --color-coffee-700: #684833;
-  --color-coffee-800: #4e3526;
-  --color-coffee-900: #37251a;
-
-  --color-cream-50: #fdfbf7;
-  --color-cream-100: #faf5ec;
-  --color-cream-200: #f3ebdd;
-  --color-cream-300: #eaddcc;
-
-  --color-ink-900: #2b211a;
-  --color-ink-700: #453729;
-  --color-ink-500: #6b5a4a;
-  --color-ink-400: #8a7a6d;
-
-  --color-leaf-300: #a3c98a;
-  --color-leaf-400: #7fb069;
-  --color-leaf-500: #5f9e4d;
-  --color-leaf-600: #4a7d3c;
-  --color-leaf-700: #3b6330;
-
-  --font-display: 'Georgia', 'Songti SC', 'Noto Serif SC', serif;
-  --font-sans:
-    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'PingFang SC',
-    'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-
-  --animate-fade-slide: fade-slide 0.35s ease both;
-}
-
-@keyframes fade-slide {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
 /* 暗色色板：把语义色整体映射到深色基底（越浅的档位在暗色下越深） */
 .dark {
-  --color-coffee-50: #26291f;
-  --color-coffee-100: #2b2118;
-  --color-coffee-200: #3d2f22;
-  --color-coffee-300: #55402e;
-  --color-coffee-400: #7a5c40;
-  --color-coffee-500: #a07a56;
-  --color-coffee-600: #c39a6d;
-  --color-coffee-700: #d3a87c;
-  --color-coffee-800: #e6c39a;
-  --color-coffee-900: #f3dcbd;
+  --tw-bg-opacity: 1;
+  --tw-text-opacity: 1;
+}
 
-  --color-cream-50: #221c15;
-  --color-cream-100: #191410;
-  --color-cream-200: #2c241b;
-  --color-cream-300: #3b3125;
+.dark .bg-cream-100 {
+  background-color: #191410;
+}
 
-  --color-ink-900: #ece1d2;
-  --color-ink-700: #d3c3af;
-  --color-ink-500: #a4917e;
-  --color-ink-400: #7f6f5f;
+.dark .bg-cream-50 {
+  background-color: #221c15;
+}
 
-  --color-leaf-300: #8fbf78;
-  --color-leaf-400: #a3d18b;
-  --color-leaf-500: #7fb069;
-  --color-leaf-600: #6a9c56;
-  --color-leaf-700: #588a47;
+.dark .text-ink-900 {
+  color: #ece1d2;
+}
+
+.dark .text-ink-700 {
+  color: #d3c3af;
+}
+
+.dark .text-ink-500 {
+  color: #a4917e;
+}
+
+.dark .text-ink-400 {
+  color: #7f6f5f;
+}
+
+.dark .text-coffee-900 {
+  color: #f3dcbd;
+}
+
+.dark .text-coffee-800 {
+  color: #e6c39a;
+}
+
+.dark .text-coffee-700 {
+  color: #d3a87c;
+}
+
+.dark .bg-coffee-700 {
+  background-color: #7a5c40;
+}
+
+.dark .bg-coffee-100 {
+  background-color: #2b2118;
+}
+
+.dark .border-coffee-200\/60 {
+  border-color: rgba(61, 47, 34, 0.6);
+}
+
+.dark .border-coffee-200\/70 {
+  border-color: rgba(61, 47, 34, 0.7);
+}
+
+.dark .border-coffee-300\/70 {
+  border-color: rgba(85, 64, 46, 0.7);
+}
+
+.dark .bg-leaf-300\/30 {
+  background-color: rgba(143, 191, 120, 0.3);
+}
+
+.dark .text-leaf-700 {
+  color: #588a47;
 }
 
 body {
