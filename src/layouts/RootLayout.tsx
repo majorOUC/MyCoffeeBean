@@ -52,7 +52,7 @@ export default function RootLayout() {
                     key={item.to}
                     to={item.to}
                     className={({ isActive }) =>
-                      `shrink-0 rounded-full px-2.5 py-1.5 text-sm transition-colors sm:px-3 ${
+                      `shrink-0 rounded-full px-2 py-1.5 text-xs transition-colors sm:px-3 sm:text-sm ${
                         isActive
                           ? 'bg-coffee-700 text-cream-50'
                           : 'text-ink-500 hover:bg-coffee-100 hover:text-coffee-800'
@@ -72,9 +72,9 @@ export default function RootLayout() {
               <span aria-hidden>{dark ? '☀️' : '🌙'}</span>
             </button>
             {user ? (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <Avatar username={user.username} size="sm" />
-                <span className="text-sm text-ink-500">
+                <span className="hidden text-sm text-ink-500 sm:inline">
                   {user.username}
                   {user.role === 'admin' && (
                     <span className="ml-1 rounded-full bg-coffee-200 px-1.5 py-0.5 text-xs text-coffee-700">
@@ -85,7 +85,7 @@ export default function RootLayout() {
                 <button
                   type="button"
                   onClick={logout}
-                  className="rounded-full px-2.5 py-1.5 text-sm text-ink-500 transition-colors hover:bg-coffee-100 hover:text-coffee-800"
+                  className="rounded-full px-2 py-1.5 text-xs text-ink-500 transition-colors hover:bg-coffee-100 hover:text-coffee-800 sm:text-sm"
                 >
                   退出
                 </button>
@@ -93,7 +93,7 @@ export default function RootLayout() {
             ) : (
               <NavLink
                 to="/login"
-                className="rounded-full px-2.5 py-1.5 text-sm text-ink-500 transition-colors hover:bg-coffee-100 hover:text-coffee-800"
+                className="rounded-full px-2 py-1.5 text-xs text-ink-500 transition-colors hover:bg-coffee-100 hover:text-coffee-800 sm:px-2.5 sm:text-sm"
               >
                 登录
               </NavLink>
