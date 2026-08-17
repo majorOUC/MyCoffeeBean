@@ -69,6 +69,12 @@ export default function CoffeesPage() {
             return b.rating - a.rating
           case 'name':
             return a.name.localeCompare(b.name)
+          case 'price':
+            // 有克价的排前面，没有的排后面；有克价的按升序排列
+            if (a.pricePerGram == null && b.pricePerGram == null) return 0
+            if (a.pricePerGram == null) return 1
+            if (b.pricePerGram == null) return -1
+            return a.pricePerGram - b.pricePerGram
           default:
             return (
               new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
