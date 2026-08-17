@@ -24,6 +24,7 @@ interface CoffeeRow {
   roast_level: string
   flavor_notes: string
   rating: number
+  price_per_gram: number | null
   description: string | null
   image_url: string | null
   created_at: string
@@ -71,6 +72,7 @@ function rowToCoffee(row: CoffeeRow): Coffee {
     roastLevel: row.roast_level as Coffee['roastLevel'],
     flavorNotes: JSON.parse(row.flavor_notes) as string[],
     rating: row.rating,
+    pricePerGram: row.price_per_gram ?? undefined,
     description: row.description ?? undefined,
     imageUrl: row.image_url ?? undefined,
     createdAt: row.created_at,
@@ -160,8 +162,8 @@ export class Database {
   async createCoffee(coffee: Coffee): Promise<void> {
     await this.db
       .prepare(
-        `INSERT INTO coffees (id, name, roaster, country, region, farm, variety, process, altitude, roast_level, flavor_notes, rating, description, image_url, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO coffees (id, name, roaster, country, region, farm, variety, process, altitude, roast_level, flavor_notes, rating, price_per_gram, description, image_url, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .bind(
         coffee.id,
@@ -176,6 +178,7 @@ export class Database {
         coffee.roastLevel,
         JSON.stringify(coffee.flavorNotes),
         coffee.rating,
+        coffee.pricePerGram ?? null,
         coffee.description ?? null,
         coffee.imageUrl ?? null,
         coffee.createdAt,
@@ -187,7 +190,7 @@ export class Database {
   async updateCoffee(id: string, coffee: Coffee): Promise<void> {
     await this.db
       .prepare(
-        `UPDATE coffees SET name=?, roaster=?, country=?, region=?, farm=?, variety=?, process=?, altitude=?, roast_level=?, flavor_notes=?, rating=?, description=?, image_url=?, updated_at=? WHERE id=?`,
+        `UPDATE coffees SET name=?, roaster=?, country=?, region=?, farm=?, variety=?, process=?, altitude=?, roast_level=?, flavor_notes=?, rating=?, price_per_gram=?, description=?, image_url=?, updated_at=? WHERE id=?`,
       )
       .bind(
         coffee.name,
@@ -201,6 +204,7 @@ export class Database {
         coffee.roastLevel,
         JSON.stringify(coffee.flavorNotes),
         coffee.rating,
+        coffee.pricePerGram ?? null,
         coffee.description ?? null,
         coffee.imageUrl ?? null,
         coffee.updatedAt,

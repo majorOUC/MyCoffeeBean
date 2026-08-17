@@ -446,6 +446,12 @@ async function cleanupImage(env: Env, imageUrl?: string): Promise<void> {
 }
 
 function normalize(input: CoffeeInput): CoffeeInput {
+  // 计算克价：总价 / 总克数
+  let pricePerGram = input.pricePerGram
+  if (input.totalGrams && input.totalPrice && input.totalGrams > 0) {
+    pricePerGram = Math.round((input.totalPrice / input.totalGrams) * 100) / 100
+  }
+
   return {
     ...input,
     name: input.name.trim(),
@@ -457,6 +463,7 @@ function normalize(input: CoffeeInput): CoffeeInput {
     description: input.description?.trim() || undefined,
     flavorNotes: input.flavorNotes ?? [],
     rating: Math.min(5, Math.max(0, Math.round((input.rating ?? 0) * 2) / 2)),
+    pricePerGram,
   }
 }
 

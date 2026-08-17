@@ -266,6 +266,41 @@ export default function AddCoffeePage() {
                 placeholder="如 1900"
               />
             </Field>
+            <Field label="总克数（g）">
+              <input
+                type="number"
+                min={0}
+                className={inputClass}
+                value={form.totalGrams ?? ''}
+                onChange={(e) => {
+                  const grams = e.target.value ? Number(e.target.value) : undefined
+                  set('totalGrams', grams)
+                  // 自动计算克价
+                  if (grams && form.totalPrice) {
+                    set('pricePerGram', Math.round((form.totalPrice / grams) * 100) / 100)
+                  }
+                }}
+                placeholder="如 250"
+              />
+            </Field>
+            <Field label="总价（元）">
+              <input
+                type="number"
+                min={0}
+                step="0.01"
+                className={inputClass}
+                value={form.totalPrice ?? ''}
+                onChange={(e) => {
+                  const price = e.target.value ? Number(e.target.value) : undefined
+                  set('totalPrice', price)
+                  // 自动计算克价
+                  if (form.totalGrams && price) {
+                    set('pricePerGram', Math.round((price / form.totalGrams) * 100) / 100)
+                  }
+                }}
+                placeholder="如 89"
+              />
+            </Field>
           </div>
         </Section>
 

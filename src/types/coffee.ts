@@ -22,6 +22,8 @@ export interface Coffee {
   flavorNotes: string[]
   /** 我的评分，0.5 步进，范围 0–5 */
   rating: number
+  /** 克价（元/克），由总价/总克数自动计算 */
+  pricePerGram?: number
   /** 我的笔记 */
   description?: string
   /** 包装照片 URL（指向 R2） */
@@ -30,8 +32,13 @@ export interface Coffee {
   updatedAt: string
 }
 
-/** 新增/编辑咖啡豆时的输入 */
-export type CoffeeInput = Omit<Coffee, 'id' | 'createdAt' | 'updatedAt'>
+/** 新增/编辑咖啡豆时的输入（含计算克价的临时字段） */
+export interface CoffeeInput extends Omit<Coffee, 'id' | 'createdAt' | 'updatedAt'> {
+  /** 总克数（用于计算克价，不存储） */
+  totalGrams?: number
+  /** 总价（元，用于计算克价，不存储） */
+  totalPrice?: number
+}
 
 /** 一条评论 */
 export interface Comment {

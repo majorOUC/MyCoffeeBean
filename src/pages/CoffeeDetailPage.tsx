@@ -186,6 +186,10 @@ function CoffeeDetail({ id }: { id: string }) {
             <Field label="处理法" value={PROCESS_LABEL[coffee.process]} />
             <Field label="海拔" value={formatAltitude(coffee.altitude)} />
             <Field label="烘焙度" value={ROAST_LABEL[coffee.roastLevel]} />
+            <Field
+              label="克价"
+              value={coffee.pricePerGram ? `¥${coffee.pricePerGram.toFixed(2)}/g` : undefined}
+            />
             <Field label="收录于" value={formatDate(coffee.createdAt)} />
           </div>
         </div>
