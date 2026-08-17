@@ -148,6 +148,62 @@ app.get('/api/auth/me', async (c) => {
   return c.json({ user })
 })
 
+// 管理员：列出所有用户
+app.get('/api/users', async (c) => {
+  const authUser = await getAuthUser(c)
+  if (!authUser || authUser.role !== 'admin') {
+    return c.json({ error: '需要管理员权限' }, 403)
+  }
+
+  const db = new Database(c.env.DB)
+  const users = await db.listUsers()
+  return c.json(users)
+})
+
+// 管理员：更新用户信息
+app.put('/api/users/:id', async (c) => {
+  const authUser = await getAuthUser(c)
+  if (!authUser || authUser.role !== 'admin') {
+    return c.json({ error: '需要管理员权限' }, 403)
+  }
+
+  const db = new Database(c.env.DB)
+  const user = await db.getUserById(c.req.param('id'))
+  if (!user) return c.json({ error: '用户不存在' }, 404)
+
+  const input = await c.req.json<{ username?: string; password?: string; role?: string }>()
+  const updates: { username?: string; passwordHash?: string; role?: string } = {}
+
+  if (input.username?.trim()) {
+    updates.username = input.username.trim()
+  }
+  if (input.password) {
+    updates.passwordHash = await hashPassword(input.password)
+  }
+  if (input.role && ['admin', 'user'].includes(input.role)) {
+    updates.role = input.role
+  }
+
+  await db.updateUser(c.req.param('id'), updates)
+  const updated = await db.getUserById(c.req.param('id'))
+  return c.json({ user: updated })
+})
+
+// 管理员：删除用户
+app.delete('/api/users/:id', async (c) => {
+  const authUser = await getAuthUser(c)
+  if (!authUser || authUser.role !== 'admin') {
+    return c.json({ error: '需要管理员权限' }, 403)
+  }
+
+  const db = new Database(c.env.DB)
+  const user = await db.getUserById(c.req.param('id'))
+  if (!user) return c.json({ error: '用户不存在' }, 404)
+
+  await db.deleteUser(user.id)
+  return c.json({ ok: true })
+})
+
 /* ------------------------------- coffees ------------------------------- */
 
 app.get('/api/coffees', async (c) => {

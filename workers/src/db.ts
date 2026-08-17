@@ -356,4 +356,38 @@ export class Database {
       .all<UserRow>()
     return results.map(rowToUser)
   }
+
+  async updateUser(
+    id: string,
+    updates: { username?: string; passwordHash?: string; role?: string },
+  ): Promise<void> {
+    const sets: string[] = []
+    const binds: unknown[] = []
+    if (updates.username) {
+      sets.push('username = ?')
+      binds.push(updates.username)
+    }
+    if (updates.passwordHash) {
+      sets.push('password_hash = ?')
+      binds.push(updates.passwordHash)
+    }
+    if (updates.role) {
+      sets.push('role = ?')
+      binds.push(updates.role)
+    }
+    if (sets.length === 0) return
+    binds.push(id)
+    await this.db
+      .prepare(`UPDATE users SET ${sets.join(', ')} WHERE id = ?`)
+      .bind(...binds)
+      .run()
+  }
+
+  async deleteUser(id: string): Promise<boolean> {
+    const result = await this.db
+      .prepare('DELETE FROM users WHERE id = ?')
+      .bind(id)
+      .run()
+    return (result.meta.changes ?? 0) > 0
+  }
 }
