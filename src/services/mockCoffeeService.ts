@@ -7,6 +7,8 @@ import type {
   CoffeeQuery,
   Comment,
   CommentInput,
+  DiaryEntry,
+  DiaryInput,
 } from '@/types/coffee'
 import { randomId } from '@/utils/format'
 import { compressImage } from '@/utils/image'
@@ -16,16 +18,24 @@ const STORAGE_KEY = 'coffee-atlas:data:v1'
 interface Store {
   coffees: Coffee[]
   comments: Comment[]
+  diary: DiaryEntry[]
 }
 
 function load(): Store {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw) as Store
+    if (raw) {
+      const parsed = JSON.parse(raw) as Store
+      // 兼容旧版本数据（没有 diary 字段）
+      if (!parsed.diary) {
+        parsed.diary = []
+      }
+      return parsed
+    }
   } catch {
     // 忽略损坏数据，回退到种子
   }
-  return { coffees: seedCoffees, comments: seedComments }
+  return { coffees: seedCoffees, comments: seedComments, diary: [] }
 }
 
 function save(store: Store): void {
@@ -181,6 +191,52 @@ class MockCoffeeService implements CoffeeService {
 
   async uploadImage(file: File | Blob): Promise<string> {
     return compressImage(file)
+  }
+
+  async listDiaryEntries(): Promise<DiaryEntry[]> {
+    return this.store.diary.sort((a, b) =>
+      a.createdAt < b.createdAt ? 1 : -1,
+    )
+  }
+
+  async getDiaryEntry(id: string): Promise<DiaryEntry | undefined> {
+    return this.store.diary.find((d) => d.id === id)
+  }
+
+  async addDiaryEntry(input: DiaryInput): Promise<DiaryEntry> {
+    const now = new Date().toISOString()
+    const entry: DiaryEntry = {
+      ...input,
+      id: randomId(),
+      createdAt: now,
+      updatedAt: now,
+    }
+    this.store.diary.push(entry)
+    this.persist()
+    return entry
+  }
+
+  async updateDiaryEntry(
+    id: string,
+    input: DiaryInput,
+  ): Promise<DiaryEntry | undefined> {
+    const idx = this.store.diary.findIndex((d) => d.id === id)
+    if (idx === -1) return undefined
+    const updated: DiaryEntry = {
+      ...this.store.diary[idx],
+      ...input,
+      updatedAt: new Date().toISOString(),
+    }
+    this.store.diary[idx] = updated
+    this.persist()
+    return updated
+  }
+
+  async deleteDiaryEntry(id: string): Promise<boolean> {
+    const before = this.store.diary.length
+    this.store.diary = this.store.diary.filter((d) => d.id !== id)
+    this.persist()
+    return this.store.diary.length < before
   }
 }
 

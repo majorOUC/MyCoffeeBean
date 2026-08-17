@@ -6,6 +6,8 @@ import type {
   CoffeeQuery,
   Comment,
   CommentInput,
+  DiaryEntry,
+  DiaryInput,
 } from '@/types/coffee'
 import { compressImage } from '@/utils/image'
 
@@ -140,6 +142,53 @@ class HttpCoffeeService implements CoffeeService {
       body: form,
     })
     return url
+  }
+
+  async listDiaryEntries(): Promise<DiaryEntry[]> {
+    return request<DiaryEntry[]>('/api/diary')
+  }
+
+  async getDiaryEntry(id: string): Promise<DiaryEntry | undefined> {
+    try {
+      return await request<DiaryEntry>(`/api/diary/${id}`)
+    } catch (err) {
+      if (err instanceof HttpError && err.status === 404) return undefined
+      throw err
+    }
+  }
+
+  async addDiaryEntry(input: DiaryInput): Promise<DiaryEntry> {
+    return request<DiaryEntry>('/api/diary', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    })
+  }
+
+  async updateDiaryEntry(
+    id: string,
+    input: DiaryInput,
+  ): Promise<DiaryEntry | undefined> {
+    try {
+      return await request<DiaryEntry>(`/api/diary/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(input),
+      })
+    } catch (err) {
+      if (err instanceof HttpError && err.status === 404) return undefined
+      throw err
+    }
+  }
+
+  async deleteDiaryEntry(id: string): Promise<boolean> {
+    try {
+      await request<{ ok: boolean }>(`/api/diary/${id}`, {
+        method: 'DELETE',
+      })
+      return true
+    } catch (err) {
+      if (err instanceof HttpError && err.status === 404) return false
+      throw err
+    }
   }
 }
 

@@ -58,6 +58,18 @@ export interface Comment {
 /** 新增评论时的输入 */
 export type CommentInput = Pick<Comment, 'content' | 'author'>
 
+/** 咖啡日记 */
+export interface DiaryEntry {
+  id: string
+  title: string
+  content: string
+  createdAt: string
+  updatedAt: string
+}
+
+/** 新增/编辑日记时的输入 */
+export type DiaryInput = Pick<DiaryEntry, 'title' | 'content'>
+
 /** 列表筛选与排序参数 */
 export interface CoffeeQuery {
   search?: string

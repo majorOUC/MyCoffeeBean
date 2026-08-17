@@ -5,6 +5,8 @@ import type {
   CoffeeQuery,
   Comment,
   CommentInput,
+  DiaryEntry,
+  DiaryInput,
 } from '@/types/coffee'
 
 /**
@@ -23,4 +25,10 @@ export interface CoffeeService {
   getStats(): Promise<AtlasStats>
   /** 上传图片，返回可存储的 imageUrl */
   uploadImage(file: File | Blob): Promise<string>
+  /** 日记功能（仅管理员） */
+  listDiaryEntries(): Promise<DiaryEntry[]>
+  getDiaryEntry(id: string): Promise<DiaryEntry | undefined>
+  addDiaryEntry(input: DiaryInput): Promise<DiaryEntry>
+  updateDiaryEntry(id: string, input: DiaryInput): Promise<DiaryEntry | undefined>
+  deleteDiaryEntry(id: string): Promise<boolean>
 }

@@ -1,4 +1,4 @@
-import type { Coffee, Comment } from '../../src/types/coffee'
+import type { Coffee, Comment, DiaryEntry } from '../../src/types/coffee'
 
 /** Worker 绑定资源 */
 export interface Env {
@@ -58,6 +58,15 @@ export interface User {
   createdAt: string
 }
 
+/** D1 中 diary 表的行结构 */
+interface DiaryRow {
+  id: string
+  title: string
+  content: string
+  created_at: string
+  updated_at: string
+}
+
 function rowToCoffee(row: CoffeeRow): Coffee {
   return {
     id: row.id,
@@ -97,6 +106,16 @@ function rowToUser(row: UserRow): User {
     username: row.username,
     role: row.role as 'admin' | 'user',
     createdAt: row.created_at,
+  }
+}
+
+function rowToDiary(row: DiaryRow): DiaryEntry {
+  return {
+    id: row.id,
+    title: row.title,
+    content: row.content,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
   }
 }
 
@@ -391,6 +410,50 @@ export class Database {
   async deleteUser(id: string): Promise<boolean> {
     const result = await this.db
       .prepare('DELETE FROM users WHERE id = ?')
+      .bind(id)
+      .run()
+    return (result.meta.changes ?? 0) > 0
+  }
+
+  /* ------------------------------- diary ------------------------------- */
+
+  async listDiaryEntries(): Promise<DiaryEntry[]> {
+    const { results } = await this.db
+      .prepare('SELECT * FROM diary ORDER BY created_at DESC')
+      .all<DiaryRow>()
+    return results.map(rowToDiary)
+  }
+
+  async getDiaryEntry(id: string): Promise<DiaryEntry | null> {
+    const row = await this.db
+      .prepare('SELECT * FROM diary WHERE id = ?')
+      .bind(id)
+      .first<DiaryRow>()
+    return row ? rowToDiary(row) : null
+  }
+
+  async createDiaryEntry(entry: DiaryEntry): Promise<void> {
+    await this.db
+      .prepare(
+        `INSERT INTO diary (id, title, content, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?)`,
+      )
+      .bind(entry.id, entry.title, entry.content, entry.createdAt, entry.updatedAt)
+      .run()
+  }
+
+  async updateDiaryEntry(id: string, entry: DiaryEntry): Promise<void> {
+    await this.db
+      .prepare(
+        `UPDATE diary SET title=?, content=?, updated_at=? WHERE id=?`,
+      )
+      .bind(entry.title, entry.content, entry.updatedAt, id)
+      .run()
+  }
+
+  async deleteDiaryEntry(id: string): Promise<boolean> {
+    const result = await this.db
+      .prepare('DELETE FROM diary WHERE id = ?')
       .bind(id)
       .run()
     return (result.meta.changes ?? 0) > 0

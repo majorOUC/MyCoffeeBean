@@ -6,7 +6,7 @@ import type { AuthUser } from './auth'
 import { Database } from './db'
 import type { Env } from './db'
 import { RateLimiter } from './rateLimiter'
-import type { Coffee, CoffeeInput, CommentInput } from '../../src/types/coffee'
+import type { Coffee, CoffeeInput, CommentInput, DiaryInput } from '../../src/types/coffee'
 
 export { RateLimiter }
 
@@ -408,6 +408,99 @@ app.delete('/api/images/:key', async (c) => {
   }
 
   await c.env.IMAGES.delete(c.req.param('key'))
+  return c.json({ ok: true })
+})
+
+/* -------------------------------- diary ------------------------------- */
+
+// 获取日记列表（仅管理员）
+app.get('/api/diary', async (c) => {
+  const authUser = await getAuthUser(c)
+  if (!authUser || authUser.role !== 'admin') {
+    return c.json({ error: '需要管理员权限' }, 403)
+  }
+
+  const db = new Database(c.env.DB)
+  const entries = await db.listDiaryEntries()
+  return c.json(entries)
+})
+
+// 获取日记详情（仅管理员）
+app.get('/api/diary/:id', async (c) => {
+  const authUser = await getAuthUser(c)
+  if (!authUser || authUser.role !== 'admin') {
+    return c.json({ error: '需要管理员权限' }, 403)
+  }
+
+  const db = new Database(c.env.DB)
+  const entry = await db.getDiaryEntry(c.req.param('id'))
+  if (!entry) return c.json({ error: 'not found' }, 404)
+  return c.json(entry)
+})
+
+// 创建日记（仅管理员）
+app.post('/api/diary', async (c) => {
+  const authUser = await getAuthUser(c)
+  if (!authUser || authUser.role !== 'admin') {
+    return c.json({ error: '需要管理员权限' }, 403)
+  }
+
+  const input = await c.req.json<DiaryInput>()
+  if (!input.title?.trim() || !input.content?.trim()) {
+    return c.json({ error: '标题和内容不能为空' }, 400)
+  }
+
+  const now = new Date().toISOString()
+  const entry = {
+    id: crypto.randomUUID(),
+    title: input.title.trim(),
+    content: input.content.trim(),
+    createdAt: now,
+    updatedAt: now,
+  }
+  const db = new Database(c.env.DB)
+  await db.createDiaryEntry(entry)
+  return c.json(entry, 201)
+})
+
+// 更新日记（仅管理员）
+app.put('/api/diary/:id', async (c) => {
+  const authUser = await getAuthUser(c)
+  if (!authUser || authUser.role !== 'admin') {
+    return c.json({ error: '需要管理员权限' }, 403)
+  }
+
+  const db = new Database(c.env.DB)
+  const existing = await db.getDiaryEntry(c.req.param('id'))
+  if (!existing) return c.json({ error: 'not found' }, 404)
+
+  const input = await c.req.json<DiaryInput>()
+  if (!input.title?.trim() || !input.content?.trim()) {
+    return c.json({ error: '标题和内容不能为空' }, 400)
+  }
+
+  const updated = {
+    ...existing,
+    title: input.title.trim(),
+    content: input.content.trim(),
+    updatedAt: new Date().toISOString(),
+  }
+  await db.updateDiaryEntry(existing.id, updated)
+  return c.json(updated)
+})
+
+// 删除日记（仅管理员）
+app.delete('/api/diary/:id', async (c) => {
+  const authUser = await getAuthUser(c)
+  if (!authUser || authUser.role !== 'admin') {
+    return c.json({ error: '需要管理员权限' }, 403)
+  }
+
+  const db = new Database(c.env.DB)
+  const existing = await db.getDiaryEntry(c.req.param('id'))
+  if (!existing) return c.json({ error: 'not found' }, 404)
+
+  await db.deleteDiaryEntry(existing.id)
   return c.json({ ok: true })
 })
 
