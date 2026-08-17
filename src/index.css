@@ -149,3 +149,13 @@ textarea {
   -moz-appearance: none;
   appearance: none;
 }
+
+/* 确保浏览器侧滑返回手势正常工作 */
+html {
+  overscroll-behavior-x: auto;
+}
+
+body {
+  overscroll-behavior-x: auto;
+  touch-action: pan-y;
+}
