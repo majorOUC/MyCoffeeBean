@@ -10,6 +10,7 @@ import type { UserRole } from '@/types/coffee'
 interface User {
   id: string
   username: string
+  displayName: string
   role: UserRole
   createdAt: string
 }
@@ -134,10 +135,10 @@ export default function UserManagementPage() {
                 className="flex items-center justify-between rounded-2xl border border-coffee-200/70 bg-cream-50 p-5 shadow-sm"
               >
                 <div className="flex items-center gap-3">
-                  <Avatar username={u.username} size="md" />
+                  <Avatar username={u.displayName || u.username} size="md" />
                   <div>
                     <div className="font-medium text-coffee-900">
-                      {u.username}
+                      {u.displayName || u.username}
                       {u.id === currentUser.id && (
                         <span className="ml-2 text-xs text-ink-400">
                           (你)
@@ -145,7 +146,7 @@ export default function UserManagementPage() {
                       )}
                     </div>
                     <div className="text-xs text-ink-400">
-                      {ROLE_LABELS[u.role]}
+                      @{u.username} · {ROLE_LABELS[u.role]}
                     </div>
                   </div>
                 </div>

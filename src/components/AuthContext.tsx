@@ -14,6 +14,7 @@ const USER_KEY = 'coffee-atlas:user'
 export interface AuthUser {
   id: string
   username: string
+  displayName: string
   role: UserRole
 }
 
@@ -24,8 +25,8 @@ interface AuthState {
 }
 
 interface AuthContextType extends AuthState {
-  login: (username: string, password: string) => Promise<void>
-  register: (username: string, password: string) => Promise<void>
+  login: (account: string, password: string) => Promise<void>
+  register: (displayName: string, account: string, password: string) => Promise<void>
   logout: () => void
 }
 
@@ -46,11 +47,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   })
 
-  const login = useCallback(async (username: string, password: string) => {
+  const login = useCallback(async (account: string, password: string) => {
     const res = await fetch('/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ username: account, password }),
     })
     if (!res.ok) {
       const err = await res.json().catch(() => ({}))
@@ -62,11 +63,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState({ token: data.token, user: data.user, loading: false })
   }, [])
 
-  const register = useCallback(async (username: string, password: string) => {
+  const register = useCallback(async (displayName: string, account: string, password: string) => {
     const res = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ displayName, account, password }),
     })
     if (!res.ok) {
       const err = await res.json().catch(() => ({}))

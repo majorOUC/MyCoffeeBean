@@ -39,54 +39,66 @@ app.get('/api/health', (c) => c.json({ ok: true }))
 
 // 注册（仅允许第一个用户成为 admin）
 app.post('/api/auth/register', async (c) => {
-  const { username, password } = await c.req.json<{
-    username: string
-    password: string
-  }>()
-  if (!username?.trim() || !password) {
-    return c.json({ error: '用户名和密码不能为空' }, 400)
-  }
-  if (username.trim().length < 2) {
-    return c.json({ error: '用户名至少 2 个字符' }, 400)
-  }
-  if (password.length < 6) {
-    return c.json({ error: '密码至少 6 位' }, 400)
-  }
+  try {
+    const { displayName, account, password } = await c.req.json<{
+      displayName: string
+      account: string
+      password: string
+    }>()
+    if (!displayName?.trim() || !account?.trim() || !password) {
+      return c.json({ error: '昵称、账号和密码都不能为空' }, 400)
+    }
+    if (account.trim().length < 3) {
+      return c.json({ error: '账号至少 3 个字符' }, 400)
+    }
+    // 验证账号只允许字母、数字、下划线
+    if (!/^[a-zA-Z0-9_]+$/.test(account.trim())) {
+      return c.json({ error: '账号只能包含字母、数字和下划线' }, 400)
+    }
+    if (password.length < 6) {
+      return c.json({ error: '密码至少 6 位' }, 400)
+    }
 
-  const db = new Database(c.env.DB)
-  const existing = await db.getUserByUsername(username.trim())
-  if (existing) {
-    return c.json({ error: '用户名已存在' }, 409)
-  }
+    const db = new Database(c.env.DB)
+    const existing = await db.getUserByUsername(account.trim())
+    if (existing) {
+      return c.json({ error: '账号已存在' }, 409)
+    }
 
-  // 检查是否是第一个用户（自动成为 admin）
-  // 简化：如果还没有用户，第一个注册的成为 admin
-  const allUsers = await db.listUsers()
-  const isFirstUser = allUsers.length === 0
+    // 检查是否是第一个用户（自动成为 admin）
+    const allUsers = await db.listUsers()
+    const isFirstUser = allUsers.length === 0
 
-  const passwordHash = await hashPassword(password)
-  const user = {
-    id: crypto.randomUUID(),
-    username: username.trim(),
-    passwordHash,
-    role: isFirstUser ? 'admin' as const : 'user' as const,
-  }
-  await db.createUser(user)
+    const passwordHash = await hashPassword(password)
+    const user = {
+      id: crypto.randomUUID(),
+      username: account.trim(),
+      displayName: displayName.trim(),
+      passwordHash,
+      role: isFirstUser ? 'admin' as const : 'user' as const,
+    }
+    await db.createUser(user)
 
-  const token = await createToken({
-    id: user.id,
-    username: user.username,
-    role: user.role,
-  })
-
-  return c.json({
-    token,
-    user: {
+    const token = await createToken({
       id: user.id,
       username: user.username,
+      displayName: user.displayName,
       role: user.role,
-    },
-  })
+    })
+
+    return c.json({
+      token,
+      user: {
+        id: user.id,
+        username: user.username,
+        displayName: user.displayName,
+        role: user.role,
+      },
+    })
+  } catch (err) {
+    console.error('Register error:', err)
+    return c.json({ error: '注册失败', details: String(err) }, 500)
+  }
 })
 
 // 登录
@@ -113,6 +125,7 @@ app.post('/api/auth/login', async (c) => {
   const token = await createToken({
     id: userRow.id,
     username: userRow.username,
+    displayName: userRow.display_name || userRow.username,
     role: userRow.role as 'admin' | 'publisher' | 'user',
   })
 
@@ -121,6 +134,7 @@ app.post('/api/auth/login', async (c) => {
     user: {
       id: userRow.id,
       username: userRow.username,
+      displayName: userRow.display_name || userRow.username,
       role: userRow.role,
     },
   })

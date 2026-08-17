@@ -45,6 +45,7 @@ interface CommentRow {
 interface UserRow {
   id: string
   username: string
+  display_name: string
   password_hash: string
   role: string
   created_at: string
@@ -54,6 +55,7 @@ interface UserRow {
 export interface User {
   id: string
   username: string
+  displayName: string
   role: 'admin' | 'publisher' | 'user'
   createdAt: string
 }
@@ -104,6 +106,7 @@ function rowToUser(row: UserRow): User {
   return {
     id: row.id,
     username: row.username,
+    displayName: row.display_name || row.username,
     role: row.role as 'admin' | 'publisher' | 'user',
     createdAt: row.created_at,
   }
@@ -362,15 +365,16 @@ export class Database {
   async createUser(user: {
     id: string
     username: string
+    displayName: string
     passwordHash: string
-    role: 'admin' | 'user'
+    role: 'admin' | 'publisher' | 'user'
   }): Promise<void> {
     await this.db
       .prepare(
-        `INSERT INTO users (id, username, password_hash, role)
-         VALUES (?, ?, ?, ?)`,
+        `INSERT INTO users (id, username, display_name, password_hash, role)
+         VALUES (?, ?, ?, ?, ?)`,
       )
-      .bind(user.id, user.username, user.passwordHash, user.role)
+      .bind(user.id, user.username, user.displayName, user.passwordHash, user.role)
       .run()
   }
 

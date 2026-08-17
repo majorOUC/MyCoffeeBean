@@ -74,9 +74,9 @@ export default function RootLayout() {
             </button>
             {user ? (
               <div className="flex items-center gap-1.5 sm:gap-2">
-                <Avatar username={user.username} size="sm" />
+                <Avatar username={user.displayName || user.username} size="sm" />
                 <span className="hidden text-sm text-ink-500 sm:inline">
-                  {user.username}
+                  {user.displayName || user.username}
                   {user.role === 'admin' && (
                     <span className="ml-1 rounded-full bg-coffee-200 px-1.5 py-0.5 text-xs text-coffee-700">
                       管理员

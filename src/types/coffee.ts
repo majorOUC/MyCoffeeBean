@@ -58,6 +58,19 @@ export interface Comment {
 /** 用户角色 */
 export type UserRole = 'user' | 'publisher' | 'admin'
 
+/** 注册输入 */
+export interface RegisterInput {
+  displayName: string
+  account: string
+  password: string
+}
+
+/** 登录输入 */
+export interface LoginInput {
+  account: string
+  password: string
+}
+
 /** 新增评论时的输入 */
 export type CommentInput = Pick<Comment, 'content' | 'author'>
 

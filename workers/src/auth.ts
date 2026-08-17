@@ -5,6 +5,7 @@ const TOKEN_EXPIRY = 7 * 24 * 60 * 60 * 1000 // 7 天
 export interface AuthUser {
   id: string
   username: string
+  displayName: string
   role: 'admin' | 'publisher' | 'user'
 }
 
@@ -81,12 +82,13 @@ export async function createToken(user: AuthUser): Promise<string> {
   const payload = {
     sub: user.id,
     username: user.username,
+    displayName: user.displayName,
     role: user.role,
     exp: Date.now() + TOKEN_EXPIRY,
   }
 
   const headerB64 = btoa(JSON.stringify(header))
-  const payloadB64 = btoa(JSON.stringify(payload))
+  const payloadB64 = btoa(unescape(encodeURIComponent(JSON.stringify(payload))))
   const message = `${headerB64}.${payloadB64}`
 
   const encoder = new TextEncoder()
@@ -129,12 +131,13 @@ export async function verifyToken(token: string): Promise<AuthUser | null> {
     )
     if (!valid) return null
 
-    const payload = JSON.parse(atob(payloadB64))
+    const payload = JSON.parse(decodeURIComponent(escape(atob(payloadB64))))
     if (payload.exp < Date.now()) return null
 
     return {
       id: payload.sub,
       username: payload.username,
+      displayName: payload.displayName || payload.username,
       role: payload.role,
     }
   } catch {
