@@ -185,18 +185,30 @@ export default function AddCoffeePage() {
               />
             </Field>
             <Field label="国家" required error={errors.country}>
-              <input
+              <select
                 className={inputClass}
                 value={form.country}
                 onChange={(e) => set('country', e.target.value)}
-                list="common-countries"
-                placeholder="如 Ethiopia"
-              />
-              <datalist id="common-countries">
+              >
+                <option value="">请选择国家</option>
                 {COMMON_COUNTRIES.map((c) => (
-                  <option key={c} value={c} />
+                  <option key={c} value={c}>{c}</option>
                 ))}
-              </datalist>
+                <option value="其他">其他（手动输入）</option>
+              </select>
+              {form.country === '其他' && (
+                <input
+                  className={`${inputClass} mt-2`}
+                  value={form._customCountry ?? ''}
+                  onChange={(e) => set('_customCountry', e.target.value)}
+                  onBlur={(e) => {
+                    if (e.target.value.trim()) {
+                      set('country', e.target.value.trim())
+                    }
+                  }}
+                  placeholder="输入国家名称"
+                />
+              )}
             </Field>
             <Field label="产区">
               <input

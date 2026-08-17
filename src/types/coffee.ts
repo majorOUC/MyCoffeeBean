@@ -38,6 +38,8 @@ export interface CoffeeInput extends Omit<Coffee, 'id' | 'createdAt' | 'updatedA
   totalGrams?: number
   /** 总价（元，用于计算克价，不存储） */
   totalPrice?: number
+  /** 自定义国家名称（表单临时字段，不存储） */
+  _customCountry?: string
 }
 
 /** 一条评论 */
