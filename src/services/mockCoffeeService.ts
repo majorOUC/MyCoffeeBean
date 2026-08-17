@@ -148,6 +148,13 @@ class MockCoffeeService implements CoffeeService {
     return comment
   }
 
+  async deleteComment(commentId: string): Promise<boolean> {
+    const before = this.store.comments.length
+    this.store.comments = this.store.comments.filter((c) => c.id !== commentId)
+    this.persist()
+    return this.store.comments.length < before
+  }
+
   async getStats(): Promise<AtlasStats> {
     const { coffees, comments } = this.store
     const rated = coffees.filter((c) => c.rating > 0)

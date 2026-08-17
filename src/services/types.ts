@@ -19,6 +19,7 @@ export interface CoffeeService {
   deleteCoffee(id: string): Promise<boolean>
   listComments(coffeeId: string): Promise<Comment[]>
   addComment(coffeeId: string, input: CommentInput): Promise<Comment>
+  deleteComment(commentId: string): Promise<boolean>
   getStats(): Promise<AtlasStats>
   /** 上传图片，返回可存储的 imageUrl */
   uploadImage(file: File | Blob): Promise<string>

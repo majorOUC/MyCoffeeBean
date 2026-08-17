@@ -67,6 +67,17 @@ function CoffeeDetail({ id }: { id: string }) {
     }
   }
 
+  const handleDeleteComment = async (commentId: string) => {
+    if (!window.confirm('确定删除这条评论？')) return
+    try {
+      await coffeeService.deleteComment(commentId)
+      setComments((prev) => prev.filter((c) => c.id !== commentId))
+      toast.show('评论已删除', 'success')
+    } catch {
+      toast.show('删除失败，请重试', 'error')
+    }
+  }
+
   if (loadError) {
     return (
       <div className="py-16">
@@ -254,18 +265,33 @@ function CoffeeDetail({ id }: { id: string }) {
           <EmptyState emoji="💬" title="还没有评论" description="成为第一个评论这款豆子的人吧。" />
         ) : (
           <div className="space-y-4">
-            {comments.map((comment) => (
-              <div key={comment.id} className="rounded-2xl border border-coffee-200/70 bg-cream-50 p-5 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Avatar username={comment.author} size="md" />
-                    <span className="font-medium text-coffee-900">{comment.author}</span>
+            {comments.map((comment) => {
+              const canDelete = user && (user.role === 'admin' || comment.userId === user.id)
+              return (
+                <div key={comment.id} className="rounded-2xl border border-coffee-200/70 bg-cream-50 p-5 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Avatar username={comment.author} size="md" />
+                      <span className="font-medium text-coffee-900">{comment.author}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-ink-400">{timeAgo(comment.createdAt)}</span>
+                      {canDelete && (
+                        <button
+                          type="button"
+                          onClick={() => void handleDeleteComment(comment.id)}
+                          className="rounded-full px-2 py-1 text-xs text-ink-400 transition-colors hover:bg-red-50 hover:text-red-500"
+                          title="删除评论"
+                        >
+                          删除
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  <span className="text-xs text-ink-400">{timeAgo(comment.createdAt)}</span>
+                  <p className="mt-3 text-sm text-ink-700">{comment.content}</p>
                 </div>
-                <p className="mt-3 text-sm text-ink-700">{comment.content}</p>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </section>

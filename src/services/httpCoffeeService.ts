@@ -114,6 +114,18 @@ class HttpCoffeeService implements CoffeeService {
     })
   }
 
+  async deleteComment(commentId: string): Promise<boolean> {
+    try {
+      await request<{ ok: boolean }>(`/api/comments/${commentId}`, {
+        method: 'DELETE',
+      })
+      return true
+    } catch (err) {
+      if (err instanceof HttpError && err.status === 404) return false
+      throw err
+    }
+  }
+
   async getStats(): Promise<AtlasStats> {
     return request<AtlasStats>('/api/stats')
   }
