@@ -27,20 +27,20 @@ export const BREW_METHODS: BrewMethod[] = [
 ]
 
 export const FLAVOR_NOTES = [
-  'Floral',
-  'Citrus',
-  'Berry',
-  'Stone Fruit',
-  'Tropical',
-  'Chocolate',
-  'Nutty',
-  'Caramel',
-  'Vanilla',
-  'Honey',
-  'Spices',
-  'Tea-like',
-  'Winey',
-  'Earthy',
+  '花香',
+  '柑橘',
+  '莓果',
+  '核果',
+  '热带水果',
+  '巧克力',
+  '坚果',
+  '焦糖',
+  '香草',
+  '蜂蜜',
+  '香料',
+  '茶感',
+  '酒香',
+  '草本',
 ] as const
 
 /** 处理法中文对照，用于标签展示 */
