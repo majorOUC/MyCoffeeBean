@@ -15,12 +15,22 @@ const world = feature(
 const WIDTH = 960
 const HEIGHT = 480
 
-/** 收藏数量 → 地图填充深度 */
-function countToLevel(count: number): number {
-  if (count >= 5) return 700
-  if (count >= 3) return 600
-  if (count >= 2) return 500
-  return 400
+/** 收藏数量 → 地图填充颜色（亮色模式） */
+function getVisitedColor(count: number): string {
+  if (count >= 5) return '#684833'  // coffee-700
+  if (count >= 3) return '#825c3e'  // coffee-600
+  if (count >= 2) return '#9c7350'  // coffee-500
+  return '#b58f6f'  // coffee-400
+}
+
+/** 未访问国家颜色 */
+function getUnvisitedColor(): string {
+  return '#eaddcc'  // cream-300
+}
+
+/** 选中国家边框颜色 */
+function getStrokeColor(isSelected: boolean): string {
+  return isSelected ? '#5f9e4d' : '#fdfbf7'  // leaf-500 : cream-50
 }
 
 interface WorldMapProps {
@@ -69,12 +79,10 @@ export default function WorldMap({
             d={d}
             fill={
               isVisited
-                ? `var(--color-coffee-${countToLevel(count)})`
-                : 'var(--color-cream-300)'
+                ? getVisitedColor(count)
+                : getUnvisitedColor()
             }
-            stroke={
-              isSelected ? 'var(--color-leaf-500)' : 'var(--color-cream-50)'
-            }
+            stroke={getStrokeColor(isSelected)}
             strokeWidth={isSelected ? 2 : 0.6}
             className={
               isVisited
