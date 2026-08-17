@@ -18,4 +18,10 @@ export default defineConfig({
       '/api': 'http://localhost:8787',
     },
   },
+  build: {
+    // 目标兼容 Chromium 60+（百度浏览器内核）
+    target: 'es2018',
+    // 确保 CSS 兼容性
+    cssTarget: 'chrome61',
+  },
 })
