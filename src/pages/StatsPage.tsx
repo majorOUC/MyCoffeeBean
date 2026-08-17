@@ -67,7 +67,7 @@ export default function StatsPage() {
         <StatCard emoji="☕" label="咖啡豆" value={stats.totalCoffees} />
         <StatCard emoji="🌍" label="国家" value={stats.totalCountries} />
         <StatCard emoji="🏔️" label="产区" value={stats.totalRegions} />
-        <StatCard emoji="🫖" label="冲煮次数" value={stats.totalTastings} />
+        <StatCard emoji="💬" label="评论数" value={stats.totalComments} />
         <StatCard
           emoji="⭐"
           label="平均评分"
@@ -76,17 +76,17 @@ export default function StatsPage() {
         />
       </section>
 
-      {/* 月度饮用 */}
+      {/* 月度评论 */}
       <section className="mt-10 rounded-3xl border border-coffee-200/70 bg-cream-50 p-5 shadow-sm sm:p-6">
         <h2 className="font-display text-lg font-semibold text-coffee-800">
-          月度饮用数量
+          月度评论数量
         </h2>
-        {stats.monthlyTastings.length === 0 ? (
-          <p className="mt-4 text-sm text-ink-400">还没有饮用记录。</p>
+        {stats.monthlyComments.length === 0 ? (
+          <p className="mt-4 text-sm text-ink-400">还没有评论记录。</p>
         ) : (
           <div className="mt-5 flex h-40 items-end gap-3 overflow-x-auto pb-1">
-            {stats.monthlyTastings.map((m) => {
-              const max = Math.max(...stats.monthlyTastings.map((x) => x.count))
+            {stats.monthlyComments.map((m) => {
+              const max = Math.max(...stats.monthlyComments.map((x) => x.count))
               return (
                 <div
                   key={m.label}

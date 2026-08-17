@@ -7,10 +7,10 @@ import ErrorState from '@/components/ErrorState'
 import RatingStars from '@/components/RatingStars'
 import Tag from '@/components/Tag'
 import { useToast } from '@/components/toastContext'
-import { BREW_LABEL, PROCESS_LABEL, ROAST_LABEL } from '@/data/constants'
+import { PROCESS_LABEL, ROAST_LABEL } from '@/data/constants'
 import { coffeeService } from '@/services/coffeeService'
-import type { Coffee, Tasting } from '@/types/coffee'
-import { countryFlag, formatDate, formatAltitude } from '@/utils/format'
+import type { Coffee, Comment, CommentInput } from '@/types/coffee'
+import { countryFlag, formatDate, formatAltitude, timeAgo } from '@/utils/format'
 
 export default function CoffeeDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -22,22 +22,46 @@ function CoffeeDetail({ id }: { id: string }) {
   const navigate = useNavigate()
   const toast = useToast()
   const [coffee, setCoffee] = useState<Coffee | null | undefined>(undefined)
-  const [tastings, setTastings] = useState<Tasting[]>([])
+  const [comments, setComments] = useState<Comment[]>([])
   const [loadError, setLoadError] = useState(false)
+  const [commentForm, setCommentForm] = useState<CommentInput>({
+    content: '',
+    author: '咖啡爱好者',
+  })
+  const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
     if (!id) return
     Promise.all([
       coffeeService.getCoffee(id),
-      coffeeService.listTastings(id),
+      coffeeService.listComments(id),
     ]).then(
-      ([c, t]) => {
+      ([c, cs]) => {
         setCoffee(c ?? null)
-        setTastings(t)
+        setComments(cs)
       },
       () => setLoadError(true),
     )
   }, [id])
+
+  const handleSubmitComment = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!commentForm.content.trim()) {
+      toast.show('请输入评论内容', 'error')
+      return
+    }
+    setSubmitting(true)
+    try {
+      const comment = await coffeeService.addComment(id!, commentForm)
+      setComments((prev) => [comment, ...prev])
+      setCommentForm((f) => ({ ...f, content: '' }))
+      toast.show('评论已发布', 'success')
+    } catch {
+      toast.show('评论发布失败，请重试', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   if (loadError) {
     return (
@@ -76,7 +100,7 @@ function CoffeeDetail({ id }: { id: string }) {
   }
 
   const handleDelete = async () => {
-    if (!window.confirm(`确定删除「${coffee.name}」及其全部冲煮记录？`)) return
+    if (!window.confirm(`确定删除「${coffee.name}」及其全部评论？`)) return
     try {
       await coffeeService.deleteCoffee(coffee.id)
       toast.show(`已删除「${coffee.name}」`, 'success')
@@ -178,66 +202,68 @@ function CoffeeDetail({ id }: { id: string }) {
         </section>
       )}
 
-      {/* 冲煮记录 */}
+      {/* 评论区 */}
       <section className="mt-10">
         <h2 className="mb-4 flex items-center gap-2 font-display text-lg font-semibold text-coffee-800">
-          喝豆记录
+          评论
           <span className="rounded-full bg-coffee-100 px-2 py-0.5 text-xs font-medium text-coffee-600">
-            {tastings.length}
+            {comments.length}
           </span>
         </h2>
 
-        {tastings.length === 0 ? (
-          <EmptyState
-            emoji="🫖"
-            title="还没有冲煮记录"
-            description="同一款豆子可以记录多次不同的冲煮（V60 / 爱乐压 / 意式…）。"
-          />
+        {/* 发表评论表单 */}
+        <form
+          onSubmit={(e) => void handleSubmitComment(e)}
+          className="mb-6 rounded-2xl border border-coffee-200/70 bg-cream-50 p-5 shadow-sm"
+        >
+          <div className="mb-3">
+            <label className="mb-1.5 block text-xs font-medium tracking-wide text-ink-500">
+              作者
+            </label>
+            <input
+              type="text"
+              value={commentForm.author}
+              onChange={(e) =>
+                setCommentForm((f) => ({ ...f, author: e.target.value }))
+              }
+              className="w-full rounded-xl border border-coffee-300/70 bg-cream-50 px-3.5 py-2 text-sm text-ink-900 placeholder:text-ink-400 focus:border-coffee-500 focus:ring-2 focus:ring-coffee-300/40 focus:outline-none"
+              placeholder="你的名字"
+            />
+          </div>
+          <div className="mb-3">
+            <label className="mb-1.5 block text-xs font-medium tracking-wide text-ink-500">
+              评论内容 *
+            </label>
+            <textarea
+              value={commentForm.content}
+              onChange={(e) => setCommentForm((f) => ({ ...f, content: e.target.value }))}
+              className="w-full rounded-xl border border-coffee-300/70 bg-cream-50 px-3.5 py-2 text-sm text-ink-900 placeholder:text-ink-400 focus:border-coffee-500 focus:ring-2 focus:ring-coffee-300/40 focus:outline-none min-h-24 resize-y"
+              placeholder="分享你对这款豆子的看法..."
+              required
+            />
+          </div>
+          <button type="submit" disabled={submitting || !commentForm.content.trim()} className="rounded-full bg-coffee-700 px-5 py-2 text-sm font-medium text-cream-50 shadow-sm transition-all hover:bg-coffee-800 hover:shadow-md disabled:opacity-50">
+            {submitting ? '发布中...' : '发布评论'}
+          </button>
+        </form>
+
+        {comments.length === 0 ? (
+          <EmptyState emoji="💬" title="还没有评论" description="成为第一个评论这款豆子的人吧。" />
         ) : (
-          <ol className="relative space-y-4 border-l-2 border-coffee-200 pl-6">
-            {tastings.map((t) => (
-              <li key={t.id} className="relative">
-                <span
-                  aria-hidden
-                  className="absolute top-5 -left-[31px] h-3 w-3 rounded-full border-2 border-cream-100 bg-coffee-500"
-                />
-                <div className="rounded-2xl border border-coffee-200/70 bg-cream-50 p-5 shadow-sm">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className="font-display font-semibold text-coffee-800">
-                        {BREW_LABEL[t.brewMethod] ?? t.brewMethod}
-                      </span>
-                      <span className="text-sm text-ink-400">{t.date}</span>
-                    </div>
-                    <RatingStars value={t.rating} size="sm" />
+          <div className="space-y-4">
+            {comments.map((comment) => (
+              <div key={comment.id} className="rounded-2xl border border-coffee-200/70 bg-cream-50 p-5 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-coffee-200 text-sm font-medium text-coffee-700">{comment.author.charAt(0)}</div>
+                    <span className="font-medium text-coffee-900">{comment.author}</span>
                   </div>
-
-                  <div className="mt-3 flex flex-wrap gap-2 text-xs text-ink-500">
-                    <Param
-                      label="粉量"
-                      value={t.dose ? `${t.dose} g` : undefined}
-                    />
-                    <Param
-                      label="水量"
-                      value={t.water ? `${t.water} g` : undefined}
-                    />
-                    <Param
-                      label="水温"
-                      value={t.temperature ? `${t.temperature} °C` : undefined}
-                    />
-                    <Param label="研磨" value={t.grindSize} />
-                    <Param label="时间" value={t.brewTime} />
-                  </div>
-
-                  {t.notes && (
-                    <p className="mt-3 border-t border-coffee-200/60 pt-3 text-sm text-ink-500">
-                      {t.notes}
-                    </p>
-                  )}
+                  <span className="text-xs text-ink-400">{timeAgo(comment.createdAt)}</span>
                 </div>
-              </li>
+                <p className="mt-3 text-sm text-ink-700">{comment.content}</p>
+              </div>
             ))}
-          </ol>
+          </div>
         )}
       </section>
     </div>
@@ -250,14 +276,5 @@ function Field({ label, value }: { label: string; value?: string }) {
       <dt className="text-xs tracking-wide text-ink-400">{label}</dt>
       <dd className="mt-0.5 font-medium text-ink-900">{value || '—'}</dd>
     </div>
-  )
-}
-
-function Param({ label, value }: { label: string; value?: string }) {
-  if (!value) return null
-  return (
-    <span className="rounded-full bg-coffee-100 px-2.5 py-1">
-      {label} {value}
-    </span>
   )
 }

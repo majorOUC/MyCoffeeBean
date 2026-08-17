@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import CoffeeCover from '@/components/CoffeeCover'
@@ -7,29 +6,26 @@ import RatingStars from '@/components/RatingStars'
 import { PROCESS_LABEL } from '@/data/constants'
 import { useAsync } from '@/hooks/useAsync'
 import { coffeeService } from '@/services/coffeeService'
-import type { AtlasStats, Coffee, Tasting } from '@/types/coffee'
+import type { AtlasStats, Coffee } from '@/types/coffee'
 import { countryFlag, timeAgo } from '@/utils/format'
 
 interface HomeData {
   stats: AtlasStats
   recent: Coffee[]
   top: Coffee | null
-  recentTastings: Tasting[]
 }
 
 export default function HomePage() {
   const { data, error, retry } = useAsync<HomeData>(async () => {
-    const [stats, recentList, topList, recentTastings] = await Promise.all([
+    const [stats, recentList, topList] = await Promise.all([
       coffeeService.getStats(),
       coffeeService.listCoffees({ sort: 'recent' }),
       coffeeService.listCoffees({ sort: 'rating' }),
-      coffeeService.listRecentTastings(4),
     ])
     return {
       stats,
       recent: recentList.slice(0, 3),
       top: topList[0] ?? null,
-      recentTastings,
     }
   })
 
@@ -44,7 +40,6 @@ export default function HomePage() {
   const stats = data?.stats
   const recent = data?.recent ?? []
   const top = data?.top ?? null
-  const recentTastings = data?.recentTastings ?? null
 
   return (
     <div className="py-8 sm:py-12">
@@ -73,7 +68,7 @@ export default function HomePage() {
         <StatCard label="咖啡豆" value={stats?.totalCoffees} emoji="☕" />
         <StatCard label="国家" value={stats?.totalCountries} emoji="🌍" />
         <StatCard label="产区" value={stats?.totalRegions} emoji="🏔️" />
-        <StatCard label="处理法" value={stats?.totalProcesses} emoji="🧪" />
+        <StatCard label="评论" value={stats?.totalComments} emoji="💬" />
       </section>
 
       {/* 最高评分 */}
@@ -110,38 +105,24 @@ export default function HomePage() {
         </section>
       )}
 
-      <div className="mt-12 grid gap-10 lg:grid-cols-2">
-        {/* 最近添加 */}
-        <section>
-          <SectionTitle emoji="🆕" title="最近添加" />
-          <div className="space-y-3">
-            {recent.map((coffee) => (
-              <MiniRow
-                key={coffee.id}
-                coffee={coffee}
-                meta={timeAgo(coffee.createdAt)}
-              />
-            ))}
-            {recent.length === 0 && <LoadingRow />}
-          </div>
-        </section>
-
-        {/* 最近饮用 */}
-        <section>
-          <SectionTitle emoji="🫖" title="最近饮用" />
-          <div className="space-y-3">
-            {recentTastings === null && <LoadingRow />}
-            {recentTastings?.map((t) => (
-              <TastingRow key={t.id} tasting={t} />
-            ))}
-            {recentTastings?.length === 0 && (
-              <div className="rounded-2xl border border-dashed border-coffee-300/60 p-4 text-center text-sm text-ink-400">
-                还没有饮用记录，去详情页记录一次冲煮吧
-              </div>
-            )}
-          </div>
-        </section>
-      </div>
+      {/* 最近添加 */}
+      <section className="mt-12">
+        <SectionTitle emoji="🆕" title="最近添加" />
+        <div className="space-y-3">
+          {recent.map((coffee) => (
+            <MiniRow
+              key={coffee.id}
+              coffee={coffee}
+              meta={timeAgo(coffee.createdAt)}
+            />
+          ))}
+          {recent.length === 0 && (
+            <div className="rounded-2xl border border-dashed border-coffee-300/60 p-4 text-center text-sm text-ink-400">
+              还没有咖啡豆，去记录你的第一款吧
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   )
 }
@@ -201,42 +182,5 @@ function MiniRow({ coffee, meta }: { coffee: Coffee; meta: string }) {
       </div>
       <span className="shrink-0 text-xs text-ink-400">{meta}</span>
     </Link>
-  )
-}
-
-function TastingRow({ tasting }: { tasting: Tasting }) {
-  const [coffee, setCoffee] = useState<Coffee | null>(null)
-  useEffect(() => {
-    void coffeeService
-      .getCoffee(tasting.coffeeId)
-      .then((c) => setCoffee(c ?? null))
-  }, [tasting.coffeeId])
-
-  return (
-    <div className="flex items-center gap-4 rounded-2xl border border-coffee-200/60 bg-cream-50 p-3">
-      <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl">
-        {coffee && <CoffeeCover coffee={coffee} />}
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="truncate font-medium text-coffee-900">
-          {coffee?.name ?? '…'}
-        </div>
-        <div className="truncate text-sm text-ink-400">
-          {tasting.brewMethod} · {tasting.date}
-          {tasting.notes ? ` · ${tasting.notes}` : ''}
-        </div>
-      </div>
-      <span className="shrink-0 text-xs font-semibold text-coffee-700">
-        {tasting.rating.toFixed(1)} ★
-      </span>
-    </div>
-  )
-}
-
-function LoadingRow() {
-  return (
-    <div className="rounded-2xl border border-dashed border-coffee-300/60 p-4 text-center text-sm text-ink-400">
-      加载中…
-    </div>
   )
 }

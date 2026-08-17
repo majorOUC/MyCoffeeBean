@@ -3,8 +3,8 @@ import type {
   Coffee,
   CoffeeInput,
   CoffeeQuery,
-  Tasting,
-  TastingInput,
+  Comment,
+  CommentInput,
 } from '@/types/coffee'
 
 /**
@@ -17,9 +17,8 @@ export interface CoffeeService {
   addCoffee(input: CoffeeInput): Promise<Coffee>
   updateCoffee(id: string, input: CoffeeInput): Promise<Coffee | undefined>
   deleteCoffee(id: string): Promise<boolean>
-  listTastings(coffeeId: string): Promise<Tasting[]>
-  addTasting(coffeeId: string, input: TastingInput): Promise<Tasting>
-  listRecentTastings(limit?: number): Promise<Tasting[]>
+  listComments(coffeeId: string): Promise<Comment[]>
+  addComment(coffeeId: string, input: CommentInput): Promise<Comment>
   getStats(): Promise<AtlasStats>
   /** 上传图片，返回可存储的 imageUrl */
   uploadImage(file: File | Blob): Promise<string>

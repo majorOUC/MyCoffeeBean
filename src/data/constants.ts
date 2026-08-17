@@ -1,4 +1,4 @@
-import type { BrewMethod, Process, RoastLevel } from '@/types/coffee'
+import type { Process, RoastLevel } from '@/types/coffee'
 
 export const PROCESSES: Process[] = [
   'Washed',
@@ -14,16 +14,6 @@ export const ROAST_LEVELS: RoastLevel[] = [
   'Medium',
   'Medium-Dark',
   'Dark',
-]
-
-export const BREW_METHODS: BrewMethod[] = [
-  'V60',
-  'Aeropress',
-  'Espresso',
-  'Cold Brew',
-  'French Press',
-  'Chemex',
-  'Moka Pot',
 ]
 
 export const FLAVOR_NOTES = [
@@ -59,17 +49,6 @@ export const ROAST_LABEL: Record<RoastLevel, string> = {
   Medium: '中烘',
   'Medium-Dark': '中深烘',
   Dark: '深烘',
-}
-
-/** 冲煮方式中文对照 */
-export const BREW_LABEL: Record<BrewMethod, string> = {
-  V60: 'V60 手冲',
-  Aeropress: '爱乐压',
-  Espresso: '意式浓缩',
-  'Cold Brew': '冷萃',
-  'French Press': '法压壶',
-  Chemex: 'Chemex',
-  'Moka Pot': '摩卡壶',
 }
 
 /** 产地国旗 emoji */

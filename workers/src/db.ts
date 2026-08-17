@@ -1,4 +1,4 @@
-import type { Coffee, Tasting } from '../../src/types/coffee'
+import type { Coffee, Comment } from '../../src/types/coffee'
 
 /** Worker 绑定资源 */
 export interface Env {
@@ -30,19 +30,12 @@ interface CoffeeRow {
   updated_at: string
 }
 
-/** D1 中 tastings 表的行结构 */
-interface TastingRow {
+/** D1 中 comments 表的行结构 */
+interface CommentRow {
   id: string
   coffee_id: string
-  date: string
-  brew_method: string
-  dose: number | null
-  water: number | null
-  temperature: number | null
-  grind_size: string | null
-  brew_time: string | null
-  rating: number
-  notes: string | null
+  content: string
+  author: string
   created_at: string
 }
 
@@ -67,19 +60,13 @@ function rowToCoffee(row: CoffeeRow): Coffee {
   }
 }
 
-function rowToTasting(row: TastingRow): Tasting {
+function rowToComment(row: CommentRow): Comment {
   return {
     id: row.id,
     coffeeId: row.coffee_id,
-    date: row.date,
-    brewMethod: row.brew_method as Tasting['brewMethod'],
-    dose: row.dose ?? undefined,
-    water: row.water ?? undefined,
-    temperature: row.temperature ?? undefined,
-    grindSize: row.grind_size ?? undefined,
-    brewTime: row.brew_time ?? undefined,
-    rating: row.rating,
-    notes: row.notes ?? undefined,
+    content: row.content,
+    author: row.author,
+    createdAt: row.created_at,
   }
 }
 
@@ -202,43 +189,28 @@ export class Database {
     return (result.meta.changes ?? 0) > 0
   }
 
-  async listTastings(coffeeId: string): Promise<Tasting[]> {
+  async listComments(coffeeId: string): Promise<Comment[]> {
     const { results } = await this.db
-      .prepare('SELECT * FROM tastings WHERE coffee_id = ? ORDER BY date DESC')
+      .prepare('SELECT * FROM comments WHERE coffee_id = ? ORDER BY created_at DESC')
       .bind(coffeeId)
-      .all<TastingRow>()
-    return results.map(rowToTasting)
+      .all<CommentRow>()
+    return results.map(rowToComment)
   }
 
-  async createTasting(tasting: Tasting): Promise<void> {
+  async createComment(comment: Comment): Promise<void> {
     await this.db
       .prepare(
-        `INSERT INTO tastings (id, coffee_id, date, brew_method, dose, water, temperature, grind_size, brew_time, rating, notes, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO comments (id, coffee_id, content, author, created_at)
+         VALUES (?, ?, ?, ?, ?)`,
       )
       .bind(
-        tasting.id,
-        tasting.coffeeId,
-        tasting.date,
-        tasting.brewMethod,
-        tasting.dose ?? null,
-        tasting.water ?? null,
-        tasting.temperature ?? null,
-        tasting.grindSize ?? null,
-        tasting.brewTime ?? null,
-        tasting.rating,
-        tasting.notes ?? null,
-        new Date().toISOString(),
+        comment.id,
+        comment.coffeeId,
+        comment.content,
+        comment.author,
+        comment.createdAt,
       )
       .run()
-  }
-
-  async listRecentTastings(limit: number): Promise<Tasting[]> {
-    const { results } = await this.db
-      .prepare('SELECT * FROM tastings ORDER BY date DESC LIMIT ?')
-      .bind(limit)
-      .all<TastingRow>()
-    return results.map(rowToTasting)
   }
 
   async getStats() {
@@ -260,17 +232,17 @@ export class Database {
         averageRating: number | null
       }>()
 
-    const tastings = await this.db
-      .prepare('SELECT COUNT(*) AS n FROM tastings')
+    const comments = await this.db
+      .prepare('SELECT COUNT(*) AS n FROM comments')
       .first<{ n: number }>()
 
-    const [countryDist, processDist, roastDist, ratingDist, monthlyTastings] =
+    const [countryDist, processDist, roastDist, ratingDist, monthlyComments] =
       await Promise.all([
         this.distBy('country', 'coffees'),
         this.distBy('process', 'coffees'),
         this.distBy('roast_level', 'coffees'),
         this.distBy('rating', 'coffees'),
-        this.distBy('substr(date, 1, 7)', 'tastings'),
+        this.distBy("substr(created_at, 1, 7)", 'comments'),
       ])
 
     return {
@@ -278,20 +250,20 @@ export class Database {
       totalCountries: overview?.totalCountries ?? 0,
       totalRegions: overview?.totalRegions ?? 0,
       totalProcesses: overview?.totalProcesses ?? 0,
-      totalTastings: tastings?.n ?? 0,
+      totalComments: comments?.n ?? 0,
       averageRating: overview?.averageRating ?? 0,
       countryDist,
       processDist,
       roastDist,
       ratingDist,
-      monthlyTastings,
+      monthlyComments,
     }
   }
 
   /** 按 SQL 表达式聚合分布，count 降序 */
   private async distBy(
     expr: string,
-    table: 'coffees' | 'tastings',
+    table: 'coffees' | 'comments',
   ): Promise<Array<{ label: string; count: number }>> {
     const { results } = await this.db
       .prepare(

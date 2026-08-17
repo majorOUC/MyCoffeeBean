@@ -4,7 +4,7 @@ import { Hono } from 'hono'
 import { Database } from './db'
 import type { Env } from './db'
 import { RateLimiter } from './rateLimiter'
-import type { Coffee, CoffeeInput, TastingInput } from '../../src/types/coffee'
+import type { Coffee, CoffeeInput, CommentInput } from '../../src/types/coffee'
 
 export { RateLimiter }
 
@@ -102,39 +102,34 @@ app.delete('/api/coffees/:id', async (c) => {
   return c.json({ ok: true })
 })
 
-/* ------------------------------- tastings ------------------------------ */
+/* ------------------------------- comments ------------------------------ */
 
-app.get('/api/coffees/:id/tastings', async (c) => {
+app.get('/api/coffees/:id/comments', async (c) => {
   const db = new Database(c.env.DB)
-  const tastings = await db.listTastings(c.req.param('id'))
-  return c.json(tastings)
+  const comments = await db.listComments(c.req.param('id'))
+  return c.json(comments)
 })
 
-app.post('/api/coffees/:id/tastings', async (c) => {
+app.post('/api/coffees/:id/comments', async (c) => {
   const coffeeId = c.req.param('id')
   const db = new Database(c.env.DB)
   const coffee = await db.getCoffee(coffeeId)
   if (!coffee) return c.json({ error: 'coffee not found' }, 404)
 
-  const input = await c.req.json<TastingInput>()
-  if (!input.date || !input.brewMethod) {
-    return c.json({ error: 'date and brewMethod are required' }, 400)
+  const input = await c.req.json<CommentInput>()
+  if (!input.content?.trim()) {
+    return c.json({ error: 'content is required' }, 400)
   }
 
-  const tasting = {
-    ...input,
-    coffeeId,
+  const comment = {
     id: crypto.randomUUID(),
+    coffeeId,
+    content: input.content.trim(),
+    author: input.author?.trim() || '匿名',
+    createdAt: new Date().toISOString(),
   }
-  await db.createTasting(tasting)
-  return c.json(tasting, 201)
-})
-
-app.get('/api/tastings/recent', async (c) => {
-  const db = new Database(c.env.DB)
-  const limit = Math.min(Number(c.req.query('limit') ?? 5), 50)
-  const tastings = await db.listRecentTastings(limit)
-  return c.json(tastings)
+  await db.createComment(comment)
+  return c.json(comment, 201)
 })
 
 /* -------------------------------- stats -------------------------------- */

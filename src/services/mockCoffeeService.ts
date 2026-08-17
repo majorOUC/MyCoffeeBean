@@ -1,12 +1,12 @@
-import { seedCoffees, seedTastings } from '@/data/mockData'
+import { seedCoffees, seedComments } from '@/data/mockData'
 import type { CoffeeService } from '@/services/types'
 import type {
   AtlasStats,
   Coffee,
   CoffeeInput,
   CoffeeQuery,
-  Tasting,
-  TastingInput,
+  Comment,
+  CommentInput,
 } from '@/types/coffee'
 import { randomId } from '@/utils/format'
 import { compressImage } from '@/utils/image'
@@ -15,7 +15,7 @@ const STORAGE_KEY = 'coffee-atlas:data:v1'
 
 interface Store {
   coffees: Coffee[]
-  tastings: Tasting[]
+  comments: Comment[]
 }
 
 function load(): Store {
@@ -25,7 +25,7 @@ function load(): Store {
   } catch {
     // 忽略损坏数据，回退到种子
   }
-  return { coffees: seedCoffees, tastings: seedTastings }
+  return { coffees: seedCoffees, comments: seedComments }
 }
 
 function save(store: Store): void {
@@ -66,10 +66,6 @@ function matches(coffee: Coffee, query: CoffeeQuery): boolean {
   return true
 }
 
-/**
- * Mock 实现：内存 + localStorage 持久化。
- * 图片以压缩 dataURL 形式存储，仅用于演示。
- */
 class MockCoffeeService implements CoffeeService {
   private store: Store = load()
 
@@ -129,39 +125,38 @@ class MockCoffeeService implements CoffeeService {
   async deleteCoffee(id: string): Promise<boolean> {
     const before = this.store.coffees.length
     this.store.coffees = this.store.coffees.filter((c) => c.id !== id)
-    this.store.tastings = this.store.tastings.filter((t) => t.coffeeId !== id)
+    this.store.comments = this.store.comments.filter((c) => c.coffeeId !== id)
     this.persist()
     return this.store.coffees.length < before
   }
 
-  async listTastings(coffeeId: string): Promise<Tasting[]> {
-    return this.store.tastings
-      .filter((t) => t.coffeeId === coffeeId)
-      .sort((a, b) => (a.date < b.date ? 1 : -1))
+  async listComments(coffeeId: string): Promise<Comment[]> {
+    return this.store.comments
+      .filter((c) => c.coffeeId === coffeeId)
+      .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
   }
 
-  async addTasting(coffeeId: string, input: TastingInput): Promise<Tasting> {
-    const tasting: Tasting = { ...input, coffeeId, id: randomId() }
-    this.store.tastings.push(tasting)
+  async addComment(coffeeId: string, input: CommentInput): Promise<Comment> {
+    const comment: Comment = {
+      ...input,
+      coffeeId,
+      id: randomId(),
+      createdAt: new Date().toISOString(),
+    }
+    this.store.comments.push(comment)
     this.persist()
-    return tasting
-  }
-
-  async listRecentTastings(limit = 5): Promise<Tasting[]> {
-    return [...this.store.tastings]
-      .sort((a, b) => (a.date < b.date ? 1 : -1))
-      .slice(0, limit)
+    return comment
   }
 
   async getStats(): Promise<AtlasStats> {
-    const { coffees, tastings } = this.store
+    const { coffees, comments } = this.store
     const rated = coffees.filter((c) => c.rating > 0)
     return {
       totalCoffees: coffees.length,
       totalCountries: new Set(coffees.map((c) => c.country)).size,
       totalRegions: new Set(coffees.map((c) => c.region)).size,
       totalProcesses: new Set(coffees.map((c) => c.process)).size,
-      totalTastings: tastings.length,
+      totalComments: comments.length,
       averageRating: rated.length
         ? Math.round(
             (rated.reduce((sum, c) => sum + c.rating, 0) / rated.length) * 10,
@@ -171,11 +166,12 @@ class MockCoffeeService implements CoffeeService {
       processDist: dist(coffees.map((c) => c.process)),
       roastDist: dist(coffees.map((c) => c.roastLevel)),
       ratingDist: dist(coffees.map((c) => String(c.rating))),
-      monthlyTastings: dist(tastings.map((t) => t.date.slice(0, 7))).sort(
-        (a, b) => (a.label < b.label ? -1 : 1),
-      ),
+      monthlyComments: dist(
+        comments.map((c) => c.createdAt.slice(0, 7)),
+      ).sort((a, b) => (a.label < b.label ? -1 : 1)),
     }
   }
+
   async uploadImage(file: File | Blob): Promise<string> {
     return compressImage(file)
   }

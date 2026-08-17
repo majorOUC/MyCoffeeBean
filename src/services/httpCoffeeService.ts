@@ -4,8 +4,8 @@ import type {
   Coffee,
   CoffeeInput,
   CoffeeQuery,
-  Tasting,
-  TastingInput,
+  Comment,
+  CommentInput,
 } from '@/types/coffee'
 import { compressImage } from '@/utils/image'
 
@@ -98,19 +98,15 @@ class HttpCoffeeService implements CoffeeService {
     }
   }
 
-  async listTastings(coffeeId: string): Promise<Tasting[]> {
-    return request<Tasting[]>(`/api/coffees/${coffeeId}/tastings`)
+  async listComments(coffeeId: string): Promise<Comment[]> {
+    return request<Comment[]>(`/api/coffees/${coffeeId}/comments`)
   }
 
-  async addTasting(coffeeId: string, input: TastingInput): Promise<Tasting> {
-    return request<Tasting>(`/api/coffees/${coffeeId}/tastings`, {
+  async addComment(coffeeId: string, input: CommentInput): Promise<Comment> {
+    return request<Comment>(`/api/coffees/${coffeeId}/comments`, {
       method: 'POST',
       body: JSON.stringify(input),
     })
-  }
-
-  async listRecentTastings(limit = 5): Promise<Tasting[]> {
-    return request<Tasting[]>(`/api/tastings/recent?limit=${limit}`)
   }
 
   async getStats(): Promise<AtlasStats> {
