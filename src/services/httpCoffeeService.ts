@@ -1,6 +1,8 @@
 import type { CoffeeService } from '@/services/types'
 import type {
   AtlasStats,
+  BrewCard,
+  BrewCardInput,
   Coffee,
   CoffeeInput,
   CoffeeQuery,
@@ -189,6 +191,22 @@ class HttpCoffeeService implements CoffeeService {
       if (err instanceof HttpError && err.status === 404) return false
       throw err
     }
+  }
+
+  async getBrewCard(): Promise<BrewCard | null> {
+    try {
+      return await request<BrewCard | null>('/api/brew-card')
+    } catch (err) {
+      if (err instanceof HttpError && err.status === 404) return null
+      throw err
+    }
+  }
+
+  async saveBrewCard(input: BrewCardInput): Promise<BrewCard> {
+    return request<BrewCard>('/api/brew-card', {
+      method: 'PUT',
+      body: JSON.stringify(input),
+    })
   }
 }
 

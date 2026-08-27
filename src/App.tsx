@@ -4,6 +4,7 @@ import { AuthProvider } from '@/components/AuthContext'
 import { ToastProvider } from '@/components/Toast'
 import RootLayout from '@/layouts/RootLayout'
 import AddCoffeePage from '@/pages/AddCoffeePage'
+import BrewCardFormPage from '@/pages/BrewCardFormPage'
 import CoffeeDetailPage from '@/pages/CoffeeDetailPage'
 import CoffeesPage from '@/pages/CoffeesPage'
 import DiaryDetailPage from '@/pages/DiaryDetailPage'
@@ -31,6 +32,7 @@ function App() {
               <Route path="diary/:id" element={<DiaryDetailPage />} />
               <Route path="diary/:id/edit" element={<DiaryFormPage />} />
               <Route path="admin/users" element={<UserManagementPage />} />
+              <Route path="brew-card/edit" element={<BrewCardFormPage />} />
               <Route path="stats" element={<StatsPage />} />
               <Route path="map" element={<MapPage />} />
               <Route path="login" element={<LoginPage />} />

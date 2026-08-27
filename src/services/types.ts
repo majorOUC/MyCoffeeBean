@@ -1,5 +1,7 @@
 import type {
   AtlasStats,
+  BrewCard,
+  BrewCardInput,
   Coffee,
   CoffeeInput,
   CoffeeQuery,
@@ -31,4 +33,7 @@ export interface CoffeeService {
   addDiaryEntry(input: DiaryInput): Promise<DiaryEntry>
   updateDiaryEntry(id: string, input: DiaryInput): Promise<DiaryEntry | undefined>
   deleteDiaryEntry(id: string): Promise<boolean>
+  /** 主页手冲参数展示卡（公开读取，仅管理员可更新；未设置时为 null） */
+  getBrewCard(): Promise<BrewCard | null>
+  saveBrewCard(input: BrewCardInput): Promise<BrewCard>
 }

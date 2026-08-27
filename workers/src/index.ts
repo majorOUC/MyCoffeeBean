@@ -6,7 +6,7 @@ import type { AuthUser } from './auth'
 import { Database } from './db'
 import type { Env } from './db'
 import { RateLimiter } from './rateLimiter'
-import type { Coffee, CoffeeInput, CommentInput, DiaryInput } from '../../src/types/coffee'
+import type { Coffee, CoffeeInput, CommentInput, DiaryInput, BrewCard, BrewCardInput } from '../../src/types/coffee'
 
 export { RateLimiter }
 
@@ -521,6 +521,52 @@ app.delete('/api/diary/:id', async (c) => {
 
   await db.deleteDiaryEntry(existing.id)
   return c.json({ ok: true })
+})
+
+/* ------------------------------- brew card ----------------------------- */
+
+// 主页手冲参数展示卡（公开读取；从未设置时返回 null）
+app.get('/api/brew-card', async (c) => {
+  const db = new Database(c.env.DB)
+  const card = await db.getBrewCard()
+  return c.json(card)
+})
+
+// 更新手冲参数卡（仅管理员，单行 upsert）
+app.put('/api/brew-card', async (c) => {
+  const authUser = await getAuthUser(c)
+  if (!authUser || authUser.role !== 'admin') {
+    return c.json({ error: '需要管理员权限' }, 403)
+  }
+
+  const input = await c.req.json<BrewCardInput>()
+  if (!input.beanName?.trim()) {
+    return c.json({ error: '方案名不能为空' }, 400)
+  }
+
+  const db = new Database(c.env.DB)
+  const existing = await db.getBrewCard()
+  if (existing?.imageUrl && existing.imageUrl !== input.imageUrl) {
+    await cleanupImage(c.env, existing.imageUrl)
+  }
+
+  const card: BrewCard = {
+    beanName: input.beanName.trim(),
+    dose: input.dose?.trim() || undefined,
+    water: input.water?.trim() || undefined,
+    ratio: input.ratio?.trim() || undefined,
+    temperature: input.temperature?.trim() || undefined,
+    grindSize: input.grindSize?.trim() || undefined,
+    bloomTime: input.bloomTime?.trim() || undefined,
+    bloomWater: input.bloomWater?.trim() || undefined,
+    stage1Water: input.stage1Water?.trim() || undefined,
+    stage2Water: input.stage2Water?.trim() || undefined,
+    stage3Water: input.stage3Water?.trim() || undefined,
+    imageUrl: input.imageUrl?.trim() || undefined,
+    updatedAt: new Date().toISOString(),
+  }
+  await db.saveBrewCard(card)
+  return c.json(card)
 })
 
 // Pages 部署时，未匹配 /api/* 的请求回退到静态资源（SPA 由前端路由接管）

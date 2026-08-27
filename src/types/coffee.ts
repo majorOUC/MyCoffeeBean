@@ -86,6 +86,38 @@ export interface DiaryEntry {
 /** 新增/编辑日记时的输入 */
 export type DiaryInput = Pick<DiaryEntry, 'title' | 'content'>
 
+/** 主页手冲参数展示卡（单条常驻卡片，公开可见，仅管理员可编辑） */
+export interface BrewCard {
+  /** 方案/豆子名 */
+  beanName: string
+  /** 粉量（克） */
+  dose?: string
+  /** 总水量（克） */
+  water?: string
+  /** 粉水比，如 1:15 */
+  ratio?: string
+  /** 水温（°C），允许区间写法如 88-92 */
+  temperature?: string
+  /** 研磨度 */
+  grindSize?: string
+  /** 闷蒸时间，如 30s */
+  bloomTime?: string
+  /** 闷蒸注水克重（克） */
+  bloomWater?: string
+  /** 第一段注水克重（克） */
+  stage1Water?: string
+  /** 第二段注水克重（克） */
+  stage2Water?: string
+  /** 第三段注水克重（克） */
+  stage3Water?: string
+  /** 冲煮照片 URL（指向 R2） */
+  imageUrl?: string
+  updatedAt: string
+}
+
+/** 更新手冲参数卡时的输入 */
+export type BrewCardInput = Omit<BrewCard, 'updatedAt'>
+
 /** 列表筛选与排序参数 */
 export interface CoffeeQuery {
   search?: string

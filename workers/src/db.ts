@@ -1,4 +1,4 @@
-import type { Coffee, Comment, DiaryEntry } from '../../src/types/coffee'
+import type { Coffee, Comment, DiaryEntry, BrewCard } from '../../src/types/coffee'
 
 /** Worker 绑定资源 */
 export interface Env {
@@ -69,6 +69,27 @@ interface DiaryRow {
   updated_at: string
 }
 
+/** brew_card 单行配置的固定主键 */
+const BREW_CARD_ID = 'default'
+
+/** D1 中 brew_card 表的行结构 */
+interface BrewCardRow {
+  id: string
+  bean_name: string
+  dose: string
+  water: string
+  ratio: string
+  temperature: string
+  grind_size: string
+  bloom_time: string
+  bloom_water: string
+  stage1_water: string
+  stage2_water: string
+  stage3_water: string
+  image_url: string | null
+  updated_at: string
+}
+
 function rowToCoffee(row: CoffeeRow): Coffee {
   return {
     id: row.id,
@@ -118,6 +139,24 @@ function rowToDiary(row: DiaryRow): DiaryEntry {
     title: row.title,
     content: row.content,
     createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  }
+}
+
+function rowToBrewCard(row: BrewCardRow): BrewCard {
+  return {
+    beanName: row.bean_name,
+    dose: row.dose || undefined,
+    water: row.water || undefined,
+    ratio: row.ratio || undefined,
+    temperature: row.temperature || undefined,
+    grindSize: row.grind_size || undefined,
+    bloomTime: row.bloom_time || undefined,
+    bloomWater: row.bloom_water || undefined,
+    stage1Water: row.stage1_water || undefined,
+    stage2Water: row.stage2_water || undefined,
+    stage3Water: row.stage3_water || undefined,
+    imageUrl: row.image_url ?? undefined,
     updatedAt: row.updated_at,
   }
 }
@@ -461,5 +500,57 @@ export class Database {
       .bind(id)
       .run()
     return (result.meta.changes ?? 0) > 0
+  }
+
+  /* ----------------------------- brew card ----------------------------- */
+
+  async getBrewCard(): Promise<BrewCard | null> {
+    const row = await this.db
+      .prepare('SELECT * FROM brew_card WHERE id = ?')
+      .bind(BREW_CARD_ID)
+      .first<BrewCardRow>()
+    return row ? rowToBrewCard(row) : null
+  }
+
+  async saveBrewCard(card: BrewCard): Promise<void> {
+    await this.db
+      .prepare(
+        `INSERT INTO brew_card (
+           id, bean_name, dose, water, ratio, temperature, grind_size,
+           bloom_time, bloom_water, stage1_water, stage2_water, stage3_water,
+           image_url, updated_at
+         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT(id) DO UPDATE SET
+           bean_name    = excluded.bean_name,
+           dose         = excluded.dose,
+           water        = excluded.water,
+           ratio        = excluded.ratio,
+           temperature  = excluded.temperature,
+           grind_size   = excluded.grind_size,
+           bloom_time   = excluded.bloom_time,
+           bloom_water  = excluded.bloom_water,
+           stage1_water = excluded.stage1_water,
+           stage2_water = excluded.stage2_water,
+           stage3_water = excluded.stage3_water,
+           image_url    = excluded.image_url,
+           updated_at   = excluded.updated_at`,
+      )
+      .bind(
+        BREW_CARD_ID,
+        card.beanName,
+        card.dose ?? '',
+        card.water ?? '',
+        card.ratio ?? '',
+        card.temperature ?? '',
+        card.grindSize ?? '',
+        card.bloomTime ?? '',
+        card.bloomWater ?? '',
+        card.stage1Water ?? '',
+        card.stage2Water ?? '',
+        card.stage3Water ?? '',
+        card.imageUrl ?? null,
+        card.updatedAt,
+      )
+      .run()
   }
 }

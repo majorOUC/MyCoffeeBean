@@ -2,6 +2,8 @@ import { seedCoffees, seedComments } from '@/data/mockData'
 import type { CoffeeService } from '@/services/types'
 import type {
   AtlasStats,
+  BrewCard,
+  BrewCardInput,
   Coffee,
   CoffeeInput,
   CoffeeQuery,
@@ -19,6 +21,7 @@ interface Store {
   coffees: Coffee[]
   comments: Comment[]
   diary: DiaryEntry[]
+  brewCard?: BrewCard
 }
 
 function load(): Store {
@@ -237,6 +240,17 @@ class MockCoffeeService implements CoffeeService {
     this.store.diary = this.store.diary.filter((d) => d.id !== id)
     this.persist()
     return this.store.diary.length < before
+  }
+
+  async getBrewCard(): Promise<BrewCard | null> {
+    return this.store.brewCard ?? null
+  }
+
+  async saveBrewCard(input: BrewCardInput): Promise<BrewCard> {
+    const card: BrewCard = { ...input, updatedAt: new Date().toISOString() }
+    this.store.brewCard = card
+    this.persist()
+    return card
   }
 }
 
