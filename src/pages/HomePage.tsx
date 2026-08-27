@@ -62,31 +62,6 @@ export default function HomePage() {
         )
       : []
 
-  const brewStages: Array<{ label: string; value: string }> = brewCard
-    ? [
-        brewCard.bloomWater || brewCard.bloomTime
-          ? {
-              label: '闷蒸',
-              value: [
-                brewCard.bloomWater ? `${brewCard.bloomWater}g` : '',
-                brewCard.bloomTime,
-              ]
-                .filter(Boolean)
-                .join(' / '),
-            }
-          : null,
-        brewCard.stage1Water
-          ? { label: '第一段', value: `${brewCard.stage1Water}g` }
-          : null,
-        brewCard.stage2Water
-          ? { label: '第二段', value: `${brewCard.stage2Water}g` }
-          : null,
-        brewCard.stage3Water
-          ? { label: '第三段', value: `${brewCard.stage3Water}g` }
-          : null,
-      ].filter((s): s is { label: string; value: string } => s !== null)
-    : []
-
   return (
     <div className="py-8 sm:py-12">
       {/* Hero */}
@@ -134,57 +109,36 @@ export default function HomePage() {
             )}
           </div>
           {brewCard ? (
-            <div className="flex flex-col gap-5 rounded-3xl border border-coffee-200/70 bg-cream-50 p-5 shadow-sm sm:flex-row sm:p-6">
+            <div className="rounded-3xl border border-coffee-200/70 bg-cream-50 p-5 shadow-sm sm:p-6">
+              <h3 className="font-display text-xl font-semibold text-coffee-900">
+                {brewCard.beanName}
+              </h3>
+              {brewParams.length > 0 && (
+                <dl className="mt-2.5 flex flex-wrap items-baseline gap-x-6 gap-y-1">
+                  {brewParams.map((p) => (
+                    <div key={p.label} className="flex items-baseline gap-1.5">
+                      <dt className="text-xs text-ink-400">{p.label}</dt>
+                      <dd className="text-sm font-medium text-coffee-900">
+                        {p.value}
+                        {p.unit && (
+                          <span className="ml-0.5 text-xs text-ink-400">
+                            {p.unit}
+                          </span>
+                        )}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
               {brewCard.imageUrl && (
-                <div className="h-44 w-full shrink-0 overflow-hidden rounded-2xl sm:h-48 sm:w-48">
+                <div className="mt-4 overflow-hidden rounded-2xl">
                   <img
                     src={resolveImageUrl(brewCard.imageUrl)}
                     alt={brewCard.beanName}
-                    className="h-full w-full object-cover"
+                    className="w-full"
                   />
                 </div>
               )}
-              <div className="min-w-0 flex-1">
-                <h3 className="font-display text-xl font-semibold text-coffee-900">
-                  {brewCard.beanName}
-                </h3>
-                {brewParams.length > 0 && (
-                  <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2.5 sm:grid-cols-3">
-                    {brewParams.map((p) => (
-                      <div key={p.label}>
-                        <dt className="text-xs text-ink-400">{p.label}</dt>
-                        <dd className="mt-0.5 font-medium text-coffee-900">
-                          {p.value}
-                          {p.unit && (
-                            <span className="ml-0.5 text-xs text-ink-400">
-                              {p.unit}
-                            </span>
-                          )}
-                        </dd>
-                      </div>
-                    ))}
-                  </dl>
-                )}
-                {brewStages.length > 0 && (
-                  <div className="mt-4 flex flex-wrap items-center gap-x-1.5 gap-y-2">
-                    {brewStages.map((stage, i) => (
-                      <span
-                        key={stage.label}
-                        className="flex items-center gap-1.5"
-                      >
-                        {i > 0 && (
-                          <span aria-hidden className="text-ink-400">
-                            →
-                          </span>
-                        )}
-                        <span className="rounded-full bg-coffee-100 px-2.5 py-1 text-xs font-medium text-coffee-800">
-                          {stage.label} {stage.value}
-                        </span>
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
             </div>
           ) : (
             <Link
