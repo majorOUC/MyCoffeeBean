@@ -39,13 +39,13 @@ export default function RootLayout() {
             <span aria-hidden className="text-xl text-coffee-700">
               ☕
             </span>
-            <span className="font-display text-lg font-semibold tracking-wide text-coffee-800">
+            <span className="hidden font-display text-lg font-semibold tracking-wide text-coffee-800 sm:inline">
               Coffee Atlas
             </span>
           </NavLink>
 
           <div className="flex min-w-0 items-center gap-1 sm:gap-2">
-            <nav className="flex items-center gap-0.5 overflow-x-auto sm:gap-2">
+            <nav className="no-scrollbar flex items-center gap-0.5 overflow-x-auto sm:gap-2">
               {navItems
                 .filter((item) => !item.requireAdmin || user?.role === 'admin')
                 .map((item) => (

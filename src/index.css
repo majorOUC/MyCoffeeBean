@@ -152,6 +152,30 @@ html {
   overscroll-behavior-x: auto;
 }
 
+/* 隐藏页面滚动条（保留滚动能力，兼容旧 Chromium 用 webkit 伪元素） */
+html {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* 隐藏元素内部滚动条（顶栏导航横向滚动用） */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
 body {
   overscroll-behavior-x: auto;
   touch-action: pan-y;
