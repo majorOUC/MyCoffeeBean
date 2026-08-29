@@ -48,15 +48,14 @@
 - [x] 受限页统一守卫组件 AccessDenied：未登录显示「请先登录 + 去登录」，
       已登录权限不足显示「权限不足 + 返回」（6 个页面接入）
 - [x] 下拉框文字压箭头修复：三处 select 右侧内边距加大到 pr-10（原生箭头保留）
-- [x] GitHub Actions 自动部署 workflow（.github/workflows/deploy.yml），
-      lint/build 全绿，等待配置仓库 Secrets 后生效
+- [x] GitHub Actions 自动部署（2026-08-29 首跑绿灯）：push main 触发
+      lint → build → D1 迁移 → 部署独立 Worker → 部署 Pages。
+      仓库 Secrets：`CLOUDFLARE_API_TOKEN`（账户级令牌，Developer Platform
+      组三项权限均为**编辑**：Cloudflare Pages / D1 / Workers Scripts）+
+      `CLOUDFLARE_ACCOUNT_ID`。
 
 ### 当前问题
 
-- [ ] CI 待生效：需在 GitHub 仓库 Settings → Secrets and variables → Actions
-      添加 `CLOUDFLARE_API_TOKEN`（权限：Pages Edit + D1 Edit +
-      Workers Scripts Edit）和 `CLOUDFLARE_ACCOUNT_ID`，然后在 Actions 页
-      re-run 或手动 workflow_dispatch
 - [ ] 本机 wrangler/workerd 启动即崩溃（access violation，疑似 VC++ 运行库问题），
       `db:migrate:local` / `dev:api` 无法运行，本地开发需修复环境或用临时 mock API 联调。
 
@@ -117,11 +116,10 @@ npm run db:migrate:remote  # 执行远程 D1 migration
 
 ## 下一步建议
 
-1. 配置 GitHub Secrets（CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID）使 CI 生效
-2. 为管理员账号设置 display_name
-3. 清理测试用户数据
-4. 修复本机 workerd（装 VC++ 运行库）恢复本地 wrangler 开发
-5. 继续 Phase 5/6/7 的完善（如果需要）
+1. 为管理员账号设置 display_name
+2. 清理测试用户数据
+3. 修复本机 workerd（装 VC++ 运行库）恢复本地 wrangler 开发
+4. 继续 Phase 5/6/7 的完善（如果需要）
 
 ---
 
