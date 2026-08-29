@@ -74,15 +74,21 @@ export default function RootLayout() {
             </button>
             {user ? (
               <div className="flex items-center gap-1.5 sm:gap-2">
-                <Avatar username={user.displayName || user.username} size="sm" />
-                <span className="hidden text-sm text-ink-500 sm:inline">
-                  {user.displayName || user.username}
-                  {user.role === 'admin' && (
-                    <span className="ml-1 rounded-full bg-coffee-200 px-1.5 py-0.5 text-xs text-coffee-700">
-                      管理员
-                    </span>
-                  )}
-                </span>
+                <NavLink
+                  to="/profile"
+                  title="个人设置"
+                  className="flex min-w-0 items-center gap-1.5 rounded-full px-1.5 py-1 transition-colors hover:bg-coffee-100 sm:gap-2"
+                >
+                  <Avatar username={user.displayName || user.username} size="sm" />
+                  <span className="hidden truncate text-sm text-ink-500 sm:inline">
+                    {user.displayName || user.username}
+                    {user.role === 'admin' && (
+                      <span className="ml-1 rounded-full bg-coffee-200 px-1.5 py-0.5 text-xs text-coffee-700">
+                        管理员
+                      </span>
+                    )}
+                  </span>
+                </NavLink>
                 <button
                   type="button"
                   onClick={logout}

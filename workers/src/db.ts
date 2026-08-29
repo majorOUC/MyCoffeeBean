@@ -428,7 +428,12 @@ export class Database {
 
   async updateUser(
     id: string,
-    updates: { username?: string; passwordHash?: string; role?: string },
+    updates: {
+      username?: string
+      passwordHash?: string
+      role?: string
+      displayName?: string
+    },
   ): Promise<void> {
     const sets: string[] = []
     const binds: unknown[] = []
@@ -443,6 +448,10 @@ export class Database {
     if (updates.role) {
       sets.push('role = ?')
       binds.push(updates.role)
+    }
+    if (updates.displayName !== undefined) {
+      sets.push('display_name = ?')
+      binds.push(updates.displayName)
     }
     if (sets.length === 0) return
     binds.push(id)

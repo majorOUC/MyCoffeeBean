@@ -29,6 +29,8 @@ interface AuthContextType extends AuthState {
   login: (account: string, password: string) => Promise<void>
   register: (displayName: string, account: string, password: string) => Promise<void>
   logout: () => void
+  /** 修改当前登录用户的昵称 */
+  updateProfile: (displayName: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -130,11 +132,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState({ token: null, user: null, loading: false })
   }, [])
 
+  const updateProfile = useCallback(async (displayName: string) => {
+    const token = localStorage.getItem(TOKEN_KEY)
+    if (!token) throw new Error('请先登录')
+    const res = await fetch('/api/auth/me', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ displayName }),
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      throw new Error(err.error || '保存失败')
+    }
+    const data = (await res.json()) as { user: AuthUser & { createdAt?: string } }
+    const { createdAt: _createdAt, ...user } = data.user
+    localStorage.setItem(USER_KEY, JSON.stringify(user))
+    setState((s) => ({ ...s, user }))
+  }, [])
+
   // 校验期间暂不渲染页面，避免守卫页对已登录用户闪现"权限不足"
   if (verifying) return null
 
   return (
-    <AuthContext.Provider value={{ ...state, login, register, logout }}>
+    <AuthContext.Provider value={{ ...state, login, register, logout, updateProfile }}>
       {children}
     </AuthContext.Provider>
   )

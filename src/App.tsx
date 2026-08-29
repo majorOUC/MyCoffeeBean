@@ -13,6 +13,7 @@ import DiaryPage from '@/pages/DiaryPage'
 import HomePage from '@/pages/HomePage'
 import LoginPage from '@/pages/LoginPage'
 import MapPage from '@/pages/MapPage'
+import ProfilePage from '@/pages/ProfilePage'
 import StatsPage from '@/pages/StatsPage'
 import UserManagementPage from '@/pages/UserManagementPage'
 
@@ -33,6 +34,7 @@ function App() {
               <Route path="diary/:id/edit" element={<DiaryFormPage />} />
               <Route path="admin/users" element={<UserManagementPage />} />
               <Route path="brew-card/edit" element={<BrewCardFormPage />} />
+              <Route path="profile" element={<ProfilePage />} />
               <Route path="stats" element={<StatsPage />} />
               <Route path="map" element={<MapPage />} />
               <Route path="login" element={<LoginPage />} />

@@ -181,6 +181,31 @@ app.get('/api/auth/me', async (c) => {
   return c.json({ user })
 })
 
+// 修改自己的昵称（所有登录用户）
+app.put('/api/auth/me', async (c) => {
+  const authUser = await getAuthUser(c)
+  if (!authUser) {
+    return c.json({ error: '请先登录' }, 401)
+  }
+
+  const input = await c.req.json<{ displayName?: string }>()
+  const displayName = input.displayName?.trim()
+  if (!displayName) {
+    return c.json({ error: '昵称不能为空' }, 400)
+  }
+  if (displayName.length > 20) {
+    return c.json({ error: '昵称最多 20 个字符' }, 400)
+  }
+
+  const db = new Database(c.env.DB)
+  await db.updateUser(authUser.id, { displayName })
+  const user = await db.getUserById(authUser.id)
+  if (!user) {
+    return c.json({ error: '用户不存在' }, 404)
+  }
+  return c.json({ user })
+})
+
 // 管理员：列出所有用户
 app.get('/api/users', async (c) => {
   const authUser = await getAuthUser(c)
