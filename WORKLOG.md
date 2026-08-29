@@ -53,6 +53,11 @@
       仓库 Secrets：`CLOUDFLARE_API_TOKEN`（账户级令牌，Developer Platform
       组三项权限均为**编辑**：Cloudflare Pages / D1 / Workers Scripts）+
       `CLOUDFLARE_ACCOUNT_ID`。
+- [x] 自助修改昵称（2026-08-29 已上线）：所有登录用户点头像/昵称进入
+      「个人设置」（/profile）修改显示昵称（上限 20 字），后端
+      `PUT /api/auth/me`。管理员昵称已设为「梦哲」。
+      数据清理结论（2026-08-29）：xiaohehe（笑呵呵）为真实用户**保留**，
+      其评论保留；无其他测试数据需要清理。
 
 ### 当前问题
 
@@ -61,9 +66,7 @@
 
 ### 待办
 
-- [ ] 修复下拉框显示问题
-- [ ] 为现有管理员账号添加 display_name 字段
-- [ ] 清理测试用户数据
+- [ ] 修复本机 workerd（装 VC++ 运行库），恢复本地 wrangler 开发
 
 ---
 
@@ -116,10 +119,8 @@ npm run db:migrate:remote  # 执行远程 D1 migration
 
 ## 下一步建议
 
-1. 为管理员账号设置 display_name
-2. 清理测试用户数据
-3. 修复本机 workerd（装 VC++ 运行库）恢复本地 wrangler 开发
-4. 继续 Phase 5/6/7 的完善（如果需要）
+1. 修复本机 workerd（装 VC++ 运行库）恢复本地 wrangler 开发
+2. 继续 Phase 5/6/7 的完善（如果需要）
 
 ---
 
