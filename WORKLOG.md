@@ -18,7 +18,7 @@
 
 ## 当前状态
 
-**最后更新**：2026-08-27
+**最后更新**：2026-08-29
 
 ### 已完成
 
@@ -40,14 +40,23 @@
 - [x] 部署到 Cloudflare Pages
 - [x] 日记页面加载问题已解决（2026-08-27 线上实测验证）
 - [x] 主页手冲参数展示卡（2026-08-27 已上线并验证）
+- [x] 安全加固（2026-08-29 已上线）：JWT 密钥移入 `JWT_SECRET` secret
+      （Pages 与独立 Worker 两处同值）；token 改标准秒级 exp；带无效 token
+      的请求统一返回 401「登录已过期」（与 403 权限不足区分）；前端启动时
+      调 /api/auth/me 校验并刷新登录态，失效自动清理。
+      ⚠️ 换密钥后所有用户需重新登录一次。
+- [x] 受限页统一守卫组件 AccessDenied：未登录显示「请先登录 + 去登录」，
+      已登录权限不足显示「权限不足 + 返回」（6 个页面接入）
+- [x] 下拉框文字压箭头修复：三处 select 右侧内边距加大到 pr-10（原生箭头保留）
+- [x] GitHub Actions 自动部署 workflow（.github/workflows/deploy.yml），
+      lint/build 全绿，等待配置仓库 Secrets 后生效
 
 ### 当前问题
 
-- [ ] 下拉框文字与箭头重叠问题（已恢复原生样式，但可能还有问题）
-- [ ] 登录态加固：AuthContext 只读 localStorage 缓存的用户信息，不调用
-      `/api/auth/me` 校验 token / 刷新角色。浏览器里残留旧版用户对象
-      （无 role 字段）或过期 token 时，会一直显示“权限不足”，重新登录即恢复。
-      建议后续在应用启动时校验并刷新登录态，未登录访问受限页时引导去登录页。
+- [ ] CI 待生效：需在 GitHub 仓库 Settings → Secrets and variables → Actions
+      添加 `CLOUDFLARE_API_TOKEN`（权限：Pages Edit + D1 Edit +
+      Workers Scripts Edit）和 `CLOUDFLARE_ACCOUNT_ID`，然后在 Actions 页
+      re-run 或手动 workflow_dispatch
 - [ ] 本机 wrangler/workerd 启动即崩溃（access violation，疑似 VC++ 运行库问题），
       `db:migrate:local` / `dev:api` 无法运行，本地开发需修复环境或用临时 mock API 联调。
 
@@ -108,10 +117,10 @@ npm run db:migrate:remote  # 执行远程 D1 migration
 
 ## 下一步建议
 
-1. 修复下拉框显示问题
-2. 登录态加固（启动时调 /api/auth/me 刷新用户信息，见"当前问题"）
-3. 为管理员账号设置 display_name
-4. 清理测试用户数据
+1. 配置 GitHub Secrets（CLOUDFLARE_API_TOKEN + CLOUDFLARE_ACCOUNT_ID）使 CI 生效
+2. 为管理员账号设置 display_name
+3. 清理测试用户数据
+4. 修复本机 workerd（装 VC++ 运行库）恢复本地 wrangler 开发
 5. 继续 Phase 5/6/7 的完善（如果需要）
 
 ---
