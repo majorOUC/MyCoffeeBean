@@ -420,9 +420,9 @@ export default function AddCoffeePage() {
 const inputClass =
   'w-full rounded-xl border border-coffee-300/70 bg-cream-50 px-3.5 py-2 text-sm text-ink-900 placeholder:text-ink-400 focus:border-coffee-500 focus:ring-2 focus:ring-coffee-300/40 focus:outline-none'
 
-/** 下拉框专用：右侧预留原生箭头空间，避免选中文字压住箭头 */
+/** 下拉框专用：胶囊圆角 + 右侧预留原生箭头空间，避免选中文字压住箭头 */
 const selectClass =
-  'w-full rounded-xl border border-coffee-300/70 bg-cream-50 py-2 pl-3.5 pr-10 text-sm text-ink-900 focus:border-coffee-500 focus:ring-2 focus:ring-coffee-300/40 focus:outline-none'
+  'w-full rounded-full border border-coffee-300/70 bg-cream-50 py-2 pl-4 pr-10 text-sm text-ink-900 focus:border-coffee-500 focus:ring-2 focus:ring-coffee-300/40 focus:outline-none'
 
 function Section({
   title,
