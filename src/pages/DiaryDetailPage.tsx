@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { useAuth } from '@/components/AuthContext'
+import AccessDenied from '@/components/AccessDenied'
 import ErrorState from '@/components/ErrorState'
 import { useToast } from '@/components/toastContext'
 import { coffeeService } from '@/services/coffeeService'
@@ -24,14 +25,7 @@ export default function DiaryDetailPage() {
   }, [id, user])
 
   if (!user || user.role !== 'admin') {
-    return (
-      <div className="py-16 text-center">
-        <h1 className="mb-4 font-display text-2xl font-bold text-coffee-900">
-          权限不足
-        </h1>
-        <p className="mb-6 text-ink-400">只有管理员才能访问咖啡日记。</p>
-      </div>
-    )
+    return <AccessDenied message="只有管理员才能访问咖啡日记。" />
   }
 
   if (entry === undefined) {

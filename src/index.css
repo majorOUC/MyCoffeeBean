@@ -127,13 +127,12 @@ textarea {
   margin: 0;
 }
 
-/* 修复移动端下拉框样式 */
+/* 修复移动端下拉框样式：保持原生箭头，右侧空间由各组件的 pr-10 预留，避免文字压住箭头 */
 select {
   -webkit-appearance: auto;
   -moz-appearance: auto;
   appearance: auto;
   background-image: none;
-  padding-right: 8px;
 }
 
 /* 修复移动端输入框样式 */

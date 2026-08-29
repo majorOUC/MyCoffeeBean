@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 
 import { useAuth } from '@/components/AuthContext'
+import AccessDenied from '@/components/AccessDenied'
 import { useToast } from '@/components/toastContext'
 import { coffeeService } from '@/services/coffeeService'
 import type { BrewCard, BrewCardInput } from '@/types/coffee'
@@ -121,18 +122,11 @@ export default function BrewCardFormPage() {
 
   if (!user || user.role !== 'admin') {
     return (
-      <div className="py-16 text-center">
-        <h1 className="mb-4 font-display text-2xl font-bold text-coffee-900">
-          权限不足
-        </h1>
-        <p className="mb-6 text-ink-400">只有管理员才能编辑手冲参数。</p>
-        <Link
-          to="/"
-          className="rounded-full bg-coffee-700 px-6 py-2.5 text-sm font-medium text-cream-50 transition-colors hover:bg-coffee-800"
-        >
-          返回首页
-        </Link>
-      </div>
+      <AccessDenied
+        message="只有管理员才能编辑手冲参数。"
+        backTo="/"
+        backLabel="返回首页"
+      />
     )
   }
 

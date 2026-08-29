@@ -4,6 +4,8 @@ import type { Coffee, Comment, DiaryEntry, BrewCard } from '../../src/types/coff
 export interface Env {
   DB: D1Database
   IMAGES: R2Bucket
+  /** JWT 签名密钥（Pages secret / 独立 Worker secret，不入库） */
+  JWT_SECRET: string
   /** Pages 环境自动提供：回退到静态资源；独立 Worker 部署时不存在 */
   ASSETS?: { fetch: typeof fetch }
   /** 写接口速率限制器（Durable Objects） */

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
+import AccessDenied from '@/components/AccessDenied'
 import { useAuth } from '@/components/AuthContext'
 import RatingStars from '@/components/RatingStars'
 import Tag from '@/components/Tag'
@@ -72,18 +73,11 @@ export default function AddCoffeePage() {
   // 无发布权限不能访问此页面
   if (!canPublish) {
     return (
-      <div className="py-16 text-center">
-        <h1 className="mb-4 font-display text-2xl font-bold text-coffee-900">
-          权限不足
-        </h1>
-        <p className="mb-6 text-ink-400">只有管理员才能添加或编辑咖啡豆。</p>
-        <Link
-          to="/coffees"
-          className="rounded-full bg-coffee-700 px-6 py-2.5 text-sm font-medium text-cream-50 transition-colors hover:bg-coffee-800"
-        >
-          返回图鉴
-        </Link>
-      </div>
+      <AccessDenied
+        message="只有管理员或发布者才能添加或编辑咖啡豆。"
+        backTo="/coffees"
+        backLabel="返回图鉴"
+      />
     )
   }
 
@@ -186,7 +180,7 @@ export default function AddCoffeePage() {
             </Field>
             <Field label="国家" required error={errors.country}>
               <select
-                className={inputClass}
+                className={selectClass}
                 value={form.country}
                 onChange={(e) => set('country', e.target.value)}
               >
@@ -236,7 +230,7 @@ export default function AddCoffeePage() {
             </Field>
             <Field label="处理法">
               <select
-                className={inputClass}
+                className={selectClass}
                 value={form.process}
                 onChange={(e) => set('process', e.target.value as Process)}
               >
@@ -249,7 +243,7 @@ export default function AddCoffeePage() {
             </Field>
             <Field label="烘焙度">
               <select
-                className={inputClass}
+                className={selectClass}
                 value={form.roastLevel}
                 onChange={(e) =>
                   set('roastLevel', e.target.value as RoastLevel)
@@ -425,6 +419,10 @@ export default function AddCoffeePage() {
 
 const inputClass =
   'w-full rounded-xl border border-coffee-300/70 bg-cream-50 px-3.5 py-2 text-sm text-ink-900 placeholder:text-ink-400 focus:border-coffee-500 focus:ring-2 focus:ring-coffee-300/40 focus:outline-none'
+
+/** 下拉框专用：右侧预留原生箭头空间，避免选中文字压住箭头 */
+const selectClass =
+  'w-full rounded-xl border border-coffee-300/70 bg-cream-50 py-2 pl-3.5 pr-10 text-sm text-ink-900 focus:border-coffee-500 focus:ring-2 focus:ring-coffee-300/40 focus:outline-none'
 
 function Section({
   title,

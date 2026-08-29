@@ -35,6 +35,19 @@ app.use('/api/*', async (c, next) => {
 
 app.get('/api/health', (c) => c.json({ ok: true }))
 
+// 登录态校验：请求携带 Bearer token 但已无效（过期/签名不符）时统一返回 401，
+// 与「未登录/权限不足」的 403 区分开，前端可据此引导重新登录
+app.use('/api/*', async (c, next) => {
+  const authHeader = c.req.header('Authorization')
+  if (authHeader?.startsWith('Bearer ') && authHeader.slice(7)) {
+    const authUser = await verifyToken(authHeader.slice(7), c.env.JWT_SECRET)
+    if (!authUser) {
+      return c.json({ error: '登录已过期，请重新登录' }, 401)
+    }
+  }
+  await next()
+})
+
 /* -------------------------------- auth -------------------------------- */
 
 // 注册（仅允许第一个用户成为 admin）
@@ -79,12 +92,15 @@ app.post('/api/auth/register', async (c) => {
     }
     await db.createUser(user)
 
-    const token = await createToken({
-      id: user.id,
-      username: user.username,
-      displayName: user.displayName,
-      role: user.role,
-    })
+    const token = await createToken(
+      {
+        id: user.id,
+        username: user.username,
+        displayName: user.displayName,
+        role: user.role,
+      },
+      c.env.JWT_SECRET,
+    )
 
     return c.json({
       token,
@@ -122,12 +138,15 @@ app.post('/api/auth/login', async (c) => {
     return c.json({ error: '用户名或密码错误' }, 401)
   }
 
-  const token = await createToken({
-    id: userRow.id,
-    username: userRow.username,
-    displayName: userRow.display_name || userRow.username,
-    role: userRow.role as 'admin' | 'publisher' | 'user',
-  })
+  const token = await createToken(
+    {
+      id: userRow.id,
+      username: userRow.username,
+      displayName: userRow.display_name || userRow.username,
+      role: userRow.role as 'admin' | 'publisher' | 'user',
+    },
+    c.env.JWT_SECRET,
+  )
 
   return c.json({
     token,
@@ -148,7 +167,7 @@ app.get('/api/auth/me', async (c) => {
   }
 
   const token = authHeader.slice(7)
-  const authUser = await verifyToken(token)
+  const authUser = await verifyToken(token, c.env.JWT_SECRET)
   if (!authUser) {
     return c.json({ error: '登录已过期，请重新登录' }, 401)
   }
@@ -580,11 +599,12 @@ app.all('*', async (c) => {
 /** 从请求中提取认证用户 */
 async function getAuthUser(c: {
   req: { header: (name: string) => string | undefined }
+  env: { JWT_SECRET: string }
 }): Promise<AuthUser | null> {
   const authHeader = c.req.header('Authorization')
   if (!authHeader?.startsWith('Bearer ')) return null
   const token = authHeader.slice(7)
-  return verifyToken(token)
+  return verifyToken(token, c.env.JWT_SECRET)
 }
 
 function validateCoffee(input: CoffeeInput): string | null {

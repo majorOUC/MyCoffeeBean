@@ -1,5 +1,4 @@
-const JWT_SECRET = 'coffee-atlas-secret-key-change-in-production'
-const TOKEN_EXPIRY = 7 * 24 * 60 * 60 * 1000 // 7 天
+const TOKEN_EXPIRY = 7 * 24 * 60 * 60 // 秒，7 天
 
 /** 用户信息（从 JWT 中解析） */
 export interface AuthUser {
@@ -76,15 +75,18 @@ export async function verifyPassword(
   return computedHashHex === hashHex
 }
 
-/** 创建 JWT token */
-export async function createToken(user: AuthUser): Promise<string> {
+/** 创建 JWT token（secret 来自环境绑定，不写入源码） */
+export async function createToken(
+  user: AuthUser,
+  secret: string,
+): Promise<string> {
   const header = { alg: 'HS256', typ: 'JWT' }
   const payload = {
     sub: user.id,
     username: user.username,
     displayName: user.displayName,
     role: user.role,
-    exp: Date.now() + TOKEN_EXPIRY,
+    exp: Math.floor(Date.now() / 1000) + TOKEN_EXPIRY,
   }
 
   const headerB64 = btoa(JSON.stringify(header))
@@ -94,7 +96,7 @@ export async function createToken(user: AuthUser): Promise<string> {
   const encoder = new TextEncoder()
   const key = await crypto.subtle.importKey(
     'raw',
-    encoder.encode(JWT_SECRET),
+    encoder.encode(secret),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
     ['sign'],
@@ -106,7 +108,10 @@ export async function createToken(user: AuthUser): Promise<string> {
 }
 
 /** 验证 JWT token */
-export async function verifyToken(token: string): Promise<AuthUser | null> {
+export async function verifyToken(
+  token: string,
+  secret: string,
+): Promise<AuthUser | null> {
   try {
     const [headerB64, payloadB64, signatureB64] = token.split('.')
     if (!headerB64 || !payloadB64 || !signatureB64) return null
@@ -116,7 +121,7 @@ export async function verifyToken(token: string): Promise<AuthUser | null> {
 
     const key = await crypto.subtle.importKey(
       'raw',
-      encoder.encode(JWT_SECRET),
+      encoder.encode(secret),
       { name: 'HMAC', hash: 'SHA-256' },
       false,
       ['verify'],
@@ -132,7 +137,9 @@ export async function verifyToken(token: string): Promise<AuthUser | null> {
     if (!valid) return null
 
     const payload = JSON.parse(decodeURIComponent(escape(atob(payloadB64))))
-    if (payload.exp < Date.now()) return null
+    // exp 为秒级 Unix 时间戳；同时兼容历史毫秒值
+    const expMs = payload.exp > 1e12 ? payload.exp : payload.exp * 1000
+    if (expMs < Date.now()) return null
 
     return {
       id: payload.sub,

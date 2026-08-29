@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 
 import Avatar from '@/components/Avatar'
+import AccessDenied from '@/components/AccessDenied'
 import { useAuth } from '@/components/AuthContext'
 import EmptyState from '@/components/EmptyState'
 import ErrorState from '@/components/ErrorState'
@@ -88,14 +89,7 @@ export default function UserManagementPage() {
   }
 
   if (!currentUser || currentUser.role !== 'admin') {
-    return (
-      <div className="py-16 text-center">
-        <h1 className="mb-4 font-display text-2xl font-bold text-coffee-900">
-          权限不足
-        </h1>
-        <p className="mb-6 text-ink-400">只有管理员才能访问用户管理。</p>
-      </div>
-    )
+    return <AccessDenied message="只有管理员才能访问用户管理。" />
   }
 
   if (error) {
@@ -158,7 +152,7 @@ export default function UserManagementPage() {
                       void handleRoleChange(u.id, e.target.value as UserRole)
                     }
                     disabled={u.id === currentUser.id}
-                    className="rounded-full border border-coffee-300/70 bg-cream-50 px-3 py-1.5 text-sm text-ink-900 focus:border-coffee-500 focus:ring-2 focus:ring-coffee-300/40 focus:outline-none disabled:opacity-50"
+                    className="rounded-full border border-coffee-300/70 bg-cream-50 py-1.5 pl-3 pr-10 text-sm text-ink-900 focus:border-coffee-500 focus:ring-2 focus:ring-coffee-300/40 focus:outline-none disabled:opacity-50"
                   >
                     <option value="user">仅浏览</option>
                     <option value="publisher">可发豆</option>

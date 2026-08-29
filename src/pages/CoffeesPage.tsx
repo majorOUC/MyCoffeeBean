@@ -205,7 +205,7 @@ function Select({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full cursor-pointer rounded-full border border-coffee-300/70 bg-cream-50 px-4 py-2 text-sm text-ink-900 focus:border-coffee-500 focus:ring-2 focus:ring-coffee-300/40 focus:outline-none"
+        className="w-full cursor-pointer rounded-full border border-coffee-300/70 bg-cream-50 py-2 pl-4 pr-10 text-sm text-ink-900 focus:border-coffee-500 focus:ring-2 focus:ring-coffee-300/40 focus:outline-none"
       >
         {allLabel && <option value="">{allLabel}</option>}
         {options.map((o) => (
