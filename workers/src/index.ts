@@ -393,7 +393,7 @@ app.post('/api/coffees/:id/comments', async (c) => {
     id: crypto.randomUUID(),
     coffeeId,
     content: input.content.trim(),
-    author: authUser.username,
+    author: authUser.displayName || authUser.username,
     userId: authUser.id,
     createdAt: new Date().toISOString(),
   }

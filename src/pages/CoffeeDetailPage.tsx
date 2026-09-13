@@ -259,8 +259,10 @@ function CoffeeDetail({ id }: { id: string }) {
             className="mb-6 rounded-2xl border border-coffee-200/70 bg-cream-50 p-5 shadow-sm"
           >
             <div className="mb-3 flex items-center gap-2">
-              <Avatar username={user.username} size="md" />
-              <span className="font-medium text-coffee-900">{user.username}</span>
+              <Avatar username={user.displayName || user.username} size="md" />
+              <span className="font-medium text-coffee-900">
+                {user.displayName || user.username}
+              </span>
             </div>
             <div className="mb-3">
               <textarea
