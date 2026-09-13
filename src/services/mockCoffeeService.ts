@@ -58,10 +58,11 @@ function dist(values: string[]): Array<{ label: string; count: number }> {
 }
 
 function matches(coffee: Coffee, query: CoffeeQuery): boolean {
-  const { search, country, process, roastLevel } = query
+  const { search, country, process, roastLevel, status } = query
   if (country && coffee.country !== country) return false
   if (process && coffee.process !== process) return false
   if (roastLevel && coffee.roastLevel !== roastLevel) return false
+  if (status && (coffee.status ?? 'finished') !== status) return false
   if (search) {
     const haystack = [
       coffee.name,

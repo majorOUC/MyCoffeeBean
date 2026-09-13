@@ -10,7 +10,7 @@ import ErrorState from '@/components/ErrorState'
 import RatingStars from '@/components/RatingStars'
 import Tag from '@/components/Tag'
 import { useToast } from '@/components/toastContext'
-import { PROCESS_LABEL, ROAST_LABEL } from '@/data/constants'
+import { PROCESS_LABEL, ROAST_LABEL, STATUS_LABEL } from '@/data/constants'
 import { coffeeService } from '@/services/coffeeService'
 import type { Coffee, Comment, CommentInput } from '@/types/coffee'
 import { countryFlag, formatDate, formatAltitude, timeAgo } from '@/utils/format'
@@ -194,6 +194,10 @@ function CoffeeDetail({ id }: { id: string }) {
           </div>
 
           <div className="mt-5 grid grid-cols-2 gap-x-6 gap-y-3 text-sm sm:grid-cols-3">
+            <Field
+              label="状态"
+              value={STATUS_LABEL[coffee.status ?? 'finished']}
+            />
             <Field
               label="国家"
               value={`${countryFlag(coffee.country)} ${coffee.country}`}

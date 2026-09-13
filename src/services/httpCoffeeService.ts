@@ -55,6 +55,7 @@ function buildQuery(query: CoffeeQuery): string {
   if (query.country) params.set('country', query.country)
   if (query.process) params.set('process', query.process)
   if (query.roastLevel) params.set('roastLevel', query.roastLevel)
+  if (query.status) params.set('status', query.status)
   if (query.sort) params.set('sort', query.sort)
   const s = params.toString()
   return s ? `?${s}` : ''

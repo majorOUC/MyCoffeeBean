@@ -1,4 +1,4 @@
-import type { Coffee, Comment, DiaryEntry, BrewCard } from '../../src/types/coffee'
+import type { Coffee, Comment, DiaryEntry, BrewCard, CoffeeStatus } from '../../src/types/coffee'
 
 /** Worker 绑定资源 */
 export interface Env {
@@ -24,6 +24,7 @@ interface CoffeeRow {
   process: string
   altitude: number | null
   roast_level: string
+  status: string | null
   flavor_notes: string
   rating: number
   price_per_gram: number | null
@@ -104,6 +105,7 @@ function rowToCoffee(row: CoffeeRow): Coffee {
     process: row.process as Coffee['process'],
     altitude: row.altitude ?? undefined,
     roastLevel: row.roast_level as Coffee['roastLevel'],
+    status: (row.status ?? 'finished') as CoffeeStatus,
     flavorNotes: JSON.parse(row.flavor_notes) as string[],
     rating: row.rating,
     pricePerGram: row.price_per_gram ?? undefined,
@@ -168,6 +170,7 @@ export interface ListParams {
   country?: string
   process?: string
   roastLevel?: string
+  status?: string
   sort?: 'rating' | 'recent' | 'name' | 'price'
   /** 分页：每页数量（不传返回全部） */
   limit?: number
@@ -203,6 +206,10 @@ export class Database {
     if (params.roastLevel) {
       where.push('roast_level = ?')
       binds.push(params.roastLevel)
+    }
+    if (params.status) {
+      where.push('status = ?')
+      binds.push(params.status)
     }
     if (params.search) {
       where.push(

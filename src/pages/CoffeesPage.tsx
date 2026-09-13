@@ -4,10 +4,12 @@ import CoffeeCard from '@/components/CoffeeCard'
 import EmptyState from '@/components/EmptyState'
 import ErrorState from '@/components/ErrorState'
 import {
+  COFFEE_STATUSES,
   PROCESSES,
   PROCESS_LABEL,
   ROAST_LABEL,
   ROAST_LEVELS,
+  STATUS_LABEL,
 } from '@/data/constants'
 import { useAsync } from '@/hooks/useAsync'
 import { coffeeService } from '@/services/coffeeService'
@@ -30,6 +32,7 @@ export default function CoffeesPage() {
   const [country, setCountry] = useState('')
   const [process, setProcess] = useState('')
   const [roastLevel, setRoastLevel] = useState('')
+  const [status, setStatus] = useState('')
   const [sort, setSort] = useState<SortOption>('recent')
 
   const allCoffees = useMemo(() => data ?? [], [data])
@@ -47,6 +50,7 @@ export default function CoffeesPage() {
         if (country && c.country !== country) return false
         if (process && c.process !== process) return false
         if (roastLevel && c.roastLevel !== roastLevel) return false
+        if (status && (c.status ?? 'finished') !== status) return false
         if (q) {
           const hay = [
             c.name,
@@ -81,9 +85,9 @@ export default function CoffeesPage() {
             )
         }
       })
-  }, [allCoffees, search, country, process, roastLevel, sort])
+  }, [allCoffees, search, country, process, roastLevel, status, sort])
 
-  const hasFilter = Boolean(search || country || process || roastLevel)
+  const hasFilter = Boolean(search || country || process || roastLevel || status)
 
   return (
     <div className="py-8">
@@ -99,7 +103,7 @@ export default function CoffeesPage() {
       </header>
 
       {/* 工具栏 */}
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <label className="col-span-2 relative sm:col-span-3 lg:col-span-1">
           <span className="sr-only">搜索</span>
           <input
@@ -137,6 +141,16 @@ export default function CoffeesPage() {
             label: ROAST_LABEL[r],
           }))}
           allLabel="全部烘焙度"
+        />
+        <Select
+          label="状态"
+          value={status}
+          onChange={setStatus}
+          options={COFFEE_STATUSES.map((s) => ({
+            value: s,
+            label: STATUS_LABEL[s],
+          }))}
+          allLabel="全部状态"
         />
         <Select
           label="排序"

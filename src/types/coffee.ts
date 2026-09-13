@@ -5,6 +5,9 @@ export type Process =
 /** 烘焙度 */
 export type RoastLevel = 'Light' | 'Medium' | 'Medium-Dark' | 'Dark'
 
+/** 豆子状态：想喝 / 在喝 / 喝完 */
+export type CoffeeStatus = 'want' | 'drinking' | 'finished'
+
 /** 一款咖啡豆 */
 export interface Coffee {
   id: string
@@ -18,6 +21,7 @@ export interface Coffee {
   /** 海拔（米） */
   altitude?: number
   roastLevel: RoastLevel
+  status: CoffeeStatus
   /** 风味标签，如花香 / 柑橘 / 莓果 */
   flavorNotes: string[]
   /** 我的评分，0.5 步进，范围 0–5 */
@@ -124,6 +128,7 @@ export interface CoffeeQuery {
   country?: string
   process?: string
   roastLevel?: string
+  status?: string
   sort?: 'rating' | 'recent' | 'name' | 'price'
 }
 

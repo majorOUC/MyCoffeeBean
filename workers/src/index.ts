@@ -282,6 +282,7 @@ app.get('/api/coffees', async (c) => {
     process: c.req.query('process'),
     roastLevel: c.req.query('roastLevel'),
     sort: (c.req.query('sort') as 'rating' | 'recent' | 'name' | 'price') ?? 'recent',
+    status: c.req.query('status') || undefined,
     limit: Number.isFinite(limit) && limit > 0 ? Math.min(limit, 200) : undefined,
     offset: Number.isFinite(offset) && offset > 0 ? offset : undefined,
   })
@@ -651,6 +652,9 @@ function validateCoffee(input: CoffeeInput): string | null {
   if (!input.country?.trim()) return 'country is required'
   if (!input.process) return 'process is required'
   if (!input.roastLevel) return 'roastLevel is required'
+  if (input.status && !['want', 'drinking', 'finished'].includes(input.status)) {
+    return 'invalid status'
+  }
   return null
 }
 
@@ -678,6 +682,9 @@ function normalize(input: CoffeeInput): CoffeeInput {
     variety: input.variety?.trim() || undefined,
     description: input.description?.trim() || undefined,
     flavorNotes: input.flavorNotes ?? [],
+    status: ['want', 'drinking', 'finished'].includes(input.status ?? '')
+      ? input.status
+      : 'finished',
     rating: Math.min(5, Math.max(0, Math.round((input.rating ?? 0) * 2) / 2)),
     pricePerGram,
   }

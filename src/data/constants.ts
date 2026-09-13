@@ -1,4 +1,4 @@
-import type { Process, RoastLevel } from '@/types/coffee'
+import type { CoffeeStatus, Process, RoastLevel } from '@/types/coffee'
 
 export const PROCESSES: Process[] = [
   'Washed',
@@ -49,6 +49,15 @@ export const ROAST_LABEL: Record<RoastLevel, string> = {
   Medium: '中烘',
   'Medium-Dark': '中深烘',
   Dark: '深烘',
+}
+
+/** 豆子状态选项与中文对照 */
+export const COFFEE_STATUSES: CoffeeStatus[] = ['want', 'drinking', 'finished']
+
+export const STATUS_LABEL: Record<CoffeeStatus, string> = {
+  want: '想喝',
+  drinking: '在喝',
+  finished: '喝完',
 }
 
 /** 产地国旗 emoji */

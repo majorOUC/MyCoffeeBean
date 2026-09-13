@@ -7,11 +7,13 @@ import RatingStars from '@/components/RatingStars'
 import Tag from '@/components/Tag'
 import { useToast } from '@/components/toastContext'
 import {
+  COFFEE_STATUSES,
   FLAVOR_NOTES,
-  PROCESSES,
   PROCESS_LABEL,
+  PROCESSES,
   ROAST_LABEL,
   ROAST_LEVELS,
+  STATUS_LABEL,
 } from '@/data/constants'
 import { coffeeService } from '@/services/coffeeService'
 import type { CoffeeInput, Process, RoastLevel } from '@/types/coffee'
@@ -41,6 +43,7 @@ const emptyForm: CoffeeInput = {
   process: 'Washed',
   altitude: undefined,
   roastLevel: 'Light',
+  status: 'finished',
   flavorNotes: [],
   rating: 4,
   description: '',
@@ -306,6 +309,24 @@ export default function AddCoffeePage() {
                 }}
                 placeholder="如 89"
               />
+            </Field>
+            <Field label="状态">
+              <div className="flex flex-wrap gap-2 pt-1">
+                {COFFEE_STATUSES.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => set('status', s)}
+                    className={`rounded-full px-4 py-1.5 text-sm transition-colors ${
+                      form.status === s
+                        ? 'bg-coffee-700 text-cream-50 shadow-sm'
+                        : 'border border-coffee-300/70 text-coffee-700 hover:bg-coffee-100'
+                    }`}
+                  >
+                    {STATUS_LABEL[s]}
+                  </button>
+                ))}
+              </div>
             </Field>
           </div>
         </Section>
