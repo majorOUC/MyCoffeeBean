@@ -169,6 +169,10 @@ export interface ListParams {
   process?: string
   roastLevel?: string
   sort?: 'rating' | 'recent' | 'name' | 'price'
+  /** 分页：每页数量（不传返回全部） */
+  limit?: number
+  /** 分页：起始偏移 */
+  offset?: number
 }
 
 const SORT_SQL: Record<string, string> = {
@@ -207,7 +211,16 @@ export class Database {
       binds.push(`%${params.search}%`)
     }
     const order = SORT_SQL[params.sort ?? 'recent'] ?? SORT_SQL.recent
-    const sql = `SELECT * FROM coffees ${where.length ? 'WHERE ' + where.join(' AND ') : ''} ORDER BY ${order}`
+    let sql = `SELECT * FROM coffees ${where.length ? 'WHERE ' + where.join(' AND ') : ''} ORDER BY ${order}`
+    // 可选分页：不传则返回全部（与历史行为一致）
+    if (params.limit !== undefined) {
+      sql += ' LIMIT ?'
+      binds.push(params.limit)
+      if (params.offset !== undefined && params.offset > 0) {
+        sql += ' OFFSET ?'
+        binds.push(params.offset)
+      }
+    }
     const { results } = await this.db
       .prepare(sql)
       .bind(...binds)

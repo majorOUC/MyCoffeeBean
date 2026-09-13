@@ -113,7 +113,7 @@ app.post('/api/auth/register', async (c) => {
     })
   } catch (err) {
     console.error('Register error:', err)
-    return c.json({ error: '注册失败', details: String(err) }, 500)
+    return c.json({ error: '注册失败' }, 500)
   }
 })
 
@@ -248,7 +248,7 @@ app.put('/api/users/:id', async (c) => {
     return c.json({ user: updated })
   } catch (err) {
     console.error('Update user error:', err)
-    return c.json({ error: '更新用户失败', details: String(err) }, 500)
+    return c.json({ error: '更新用户失败' }, 500)
   }
 })
 
@@ -271,12 +271,19 @@ app.delete('/api/users/:id', async (c) => {
 
 app.get('/api/coffees', async (c) => {
   const db = new Database(c.env.DB)
+  // 可选分页：limit/offset 为正整数时生效，不传返回全部
+  const limitRaw = c.req.query('limit')
+  const offsetRaw = c.req.query('offset')
+  const limit = Number.parseInt(limitRaw ?? '', 10)
+  const offset = Number.parseInt(offsetRaw ?? '', 10)
   const coffees = await db.listCoffees({
     search: c.req.query('search'),
     country: c.req.query('country'),
     process: c.req.query('process'),
     roastLevel: c.req.query('roastLevel'),
     sort: (c.req.query('sort') as 'rating' | 'recent' | 'name' | 'price') ?? 'recent',
+    limit: Number.isFinite(limit) && limit > 0 ? Math.min(limit, 200) : undefined,
+    offset: Number.isFinite(offset) && offset > 0 ? offset : undefined,
   })
   return c.json(coffees)
 })
@@ -378,6 +385,9 @@ app.post('/api/coffees/:id/comments', async (c) => {
   if (!input.content?.trim()) {
     return c.json({ error: 'content is required' }, 400)
   }
+  if (input.content.trim().length > 500) {
+    return c.json({ error: '评论最多 500 字' }, 400)
+  }
 
   const comment = {
     id: crypto.randomUUID(),
@@ -415,7 +425,10 @@ app.delete('/api/comments/:id', async (c) => {
 
 app.get('/api/stats', async (c) => {
   const db = new Database(c.env.DB)
-  return c.json(await db.getStats())
+  // 聚合查询较重，允许浏览器/CDN 缓存 5 分钟
+  return c.json(await db.getStats(), 200, {
+    'Cache-Control': 'public, max-age=300',
+  })
 })
 
 /* -------------------------------- images ------------------------------- */
