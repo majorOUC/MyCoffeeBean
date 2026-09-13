@@ -127,6 +127,11 @@
   color: #588a47;
 }
 
+/* 「喝完」状态标签的弱化中性底色 */
+.dark .bg-ink-500\/10 {
+  background-color: rgba(236, 225, 210, 0.08);
+}
+
 body {
   @apply bg-cream-100 text-ink-900 font-sans antialiased;
 }

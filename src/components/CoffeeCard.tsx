@@ -3,8 +3,15 @@ import { Link } from 'react-router-dom'
 import CoffeeCover from '@/components/CoffeeCover'
 import RatingStars from '@/components/RatingStars'
 import { PROCESS_LABEL, ROAST_LABEL, STATUS_LABEL } from '@/data/constants'
-import type { Coffee } from '@/types/coffee'
+import type { Coffee, CoffeeStatus } from '@/types/coffee'
 import { countryFlag } from '@/utils/format'
+
+/** 状态标签底色：想喝=叶绿、在喝=深咖强调、喝完=中性弱化（暗色覆盖见 index.css） */
+const STATUS_PILL_CLASS: Record<CoffeeStatus, string> = {
+  want: 'bg-leaf-300/30 text-leaf-700',
+  drinking: 'bg-coffee-700 text-cream-50',
+  finished: 'bg-ink-500/10 text-ink-500',
+}
 
 /** 图鉴墙中的单张咖啡豆卡片 */
 export default function CoffeeCard({ coffee }: { coffee: Coffee }) {
@@ -21,17 +28,6 @@ export default function CoffeeCard({ coffee }: { coffee: Coffee }) {
         <span className="absolute top-3 right-3 rounded-full bg-cream-50/90 px-2.5 py-1 text-xs font-semibold text-coffee-800 backdrop-blur">
           {coffee.rating.toFixed(1)} ★
         </span>
-        {status !== 'finished' && (
-          <span
-            className={`absolute top-3 left-3 rounded-full px-2.5 py-1 text-xs font-semibold backdrop-blur ${
-              status === 'want'
-                ? 'bg-leaf-300/80 text-leaf-700'
-                : 'bg-coffee-700/90 text-cream-50'
-            }`}
-          >
-            {STATUS_LABEL[status]}
-          </span>
-        )}
       </div>
 
       <div className="p-4 sm:p-5">
@@ -51,6 +47,11 @@ export default function CoffeeCard({ coffee }: { coffee: Coffee }) {
           </span>
           <span className="inline-flex items-center rounded-full bg-coffee-100 px-2.5 py-1 text-xs font-medium text-coffee-700">
             {ROAST_LABEL[coffee.roastLevel]}
+          </span>
+          <span
+            className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${STATUS_PILL_CLASS[status]}`}
+          >
+            {STATUS_LABEL[status]}
           </span>
         </div>
 
