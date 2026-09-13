@@ -246,8 +246,8 @@ export class Database {
   async createCoffee(coffee: Coffee): Promise<void> {
     await this.db
       .prepare(
-        `INSERT INTO coffees (id, name, roaster, country, region, farm, variety, process, altitude, roast_level, flavor_notes, rating, price_per_gram, description, image_url, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO coffees (id, name, roaster, country, region, farm, variety, process, altitude, roast_level, status, flavor_notes, rating, price_per_gram, description, image_url, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .bind(
         coffee.id,
@@ -260,6 +260,7 @@ export class Database {
         coffee.process,
         coffee.altitude ?? null,
         coffee.roastLevel,
+        coffee.status,
         JSON.stringify(coffee.flavorNotes),
         coffee.rating,
         coffee.pricePerGram ?? null,
@@ -274,7 +275,7 @@ export class Database {
   async updateCoffee(id: string, coffee: Coffee): Promise<void> {
     await this.db
       .prepare(
-        `UPDATE coffees SET name=?, roaster=?, country=?, region=?, farm=?, variety=?, process=?, altitude=?, roast_level=?, flavor_notes=?, rating=?, price_per_gram=?, description=?, image_url=?, updated_at=? WHERE id=?`,
+        `UPDATE coffees SET name=?, roaster=?, country=?, region=?, farm=?, variety=?, process=?, altitude=?, roast_level=?, status=?, flavor_notes=?, rating=?, price_per_gram=?, description=?, image_url=?, updated_at=? WHERE id=?`,
       )
       .bind(
         coffee.name,
@@ -286,6 +287,7 @@ export class Database {
         coffee.process,
         coffee.altitude ?? null,
         coffee.roastLevel,
+        coffee.status,
         JSON.stringify(coffee.flavorNotes),
         coffee.rating,
         coffee.pricePerGram ?? null,
