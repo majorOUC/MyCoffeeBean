@@ -73,6 +73,13 @@
       ⑧ 错误响应移除 details 内部信息。
       ⚠️ 教训：多目录改动要 `git add -A`，曾漏提交 workers/ 导致 CI 用旧后端覆盖线上。
 
+- [x] 豆子状态（2026-09-13 已上线，commit b11f6d9）：
+      `want=想喝 / drinking=在喝 / finished=喝完`，migration 0009 新增
+      coffees.status 列（存量默认 finished）并 **DROP 了从未启用的 tastings 表**。
+      图鉴卡片左上角显示状态徽章（喝完不显示）、详情页元信息含状态、
+      图鉴筛选栏新增状态下拉、记豆子表单为三选一胶囊按钮；
+      API 支持 `?status=` 筛选。
+
 ### 当前问题
 
 - [ ] 本机 wrangler/workerd 启动即崩溃（access violation，疑似 VC++ 运行库问题），
