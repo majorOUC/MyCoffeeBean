@@ -61,6 +61,18 @@
       数据清理结论（2026-08-29）：xiaohehe（笑呵呵）为真实用户**保留**，
       其评论保留；无其他测试数据需要清理。
 
+- [x] 体验与性能批次（2026-09-13 已上线，commit 4d25c97 + b27a786）：
+      ① 地图路由级懒加载，主包 448KB→316KB（-30%），地理数据按需加载；
+      ② 暗色模式补齐（顶栏半透明底、EmptyState、红色删除态、coffee-300/500/600、
+      管理员徽章、世界地图配色全部适配暗色）；
+      ③ 评论前后端 500 字上限（日记不限制）；
+      ④ GET /api/stats 加 Cache-Control 5 分钟；
+      ⑤ GET /api/coffees 支持 limit/offset（上限 200，前端暂不分页）；
+      ⑥ 删除豆子/评论改为站内 ConfirmDialog（替代 window.confirm）；
+      ⑦ 详情页封面点击灯箱看大图；
+      ⑧ 错误响应移除 details 内部信息。
+      ⚠️ 教训：多目录改动要 `git add -A`，曾漏提交 workers/ 导致 CI 用旧后端覆盖线上。
+
 ### 当前问题
 
 - [ ] 本机 wrangler/workerd 启动即崩溃（access violation，疑似 VC++ 运行库问题），
