@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import Avatar from '@/components/Avatar'
 import { useAuth } from '@/components/AuthContext'
 import CoffeeCover from '@/components/CoffeeCover'
+import ConfirmDialog from '@/components/ConfirmDialog'
 import EmptyState from '@/components/EmptyState'
 import ErrorState from '@/components/ErrorState'
 import RatingStars from '@/components/RatingStars'
@@ -13,6 +14,9 @@ import { PROCESS_LABEL, ROAST_LABEL } from '@/data/constants'
 import { coffeeService } from '@/services/coffeeService'
 import type { Coffee, Comment, CommentInput } from '@/types/coffee'
 import { countryFlag, formatDate, formatAltitude, timeAgo } from '@/utils/format'
+import { resolveImageUrl } from '@/utils/url'
+
+const COMMENT_MAX_LENGTH = 500
 
 export default function CoffeeDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -33,6 +37,11 @@ function CoffeeDetail({ id }: { id: string }) {
     author: user?.username ?? '',
   })
   const [submitting, setSubmitting] = useState(false)
+  const [confirm, setConfirm] = useState<{
+    type: 'coffee' | 'comment'
+    commentId?: string
+  } | null>(null)
+  const [zoom, setZoom] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -68,13 +77,14 @@ function CoffeeDetail({ id }: { id: string }) {
   }
 
   const handleDeleteComment = async (commentId: string) => {
-    if (!window.confirm('确定删除这条评论？')) return
     try {
       await coffeeService.deleteComment(commentId)
       setComments((prev) => prev.filter((c) => c.id !== commentId))
       toast.show('评论已删除', 'success')
     } catch {
       toast.show('删除失败，请重试', 'error')
+    } finally {
+      setConfirm(null)
     }
   }
 
@@ -115,13 +125,14 @@ function CoffeeDetail({ id }: { id: string }) {
   }
 
   const handleDelete = async () => {
-    if (!window.confirm(`确定删除「${coffee.name}」及其全部评论？`)) return
     try {
       await coffeeService.deleteCoffee(coffee.id)
       toast.show(`已删除「${coffee.name}」`, 'success')
       navigate('/coffees')
     } catch {
       toast.show('删除失败，请重试', 'error')
+    } finally {
+      setConfirm(null)
     }
   }
 
@@ -136,7 +147,14 @@ function CoffeeDetail({ id }: { id: string }) {
 
       {/* 档案头部 */}
       <div className="mt-4 flex flex-col gap-6 sm:flex-row">
-        <div className="h-56 w-full shrink-0 overflow-hidden rounded-3xl shadow-md sm:h-64 sm:w-72">
+        <div
+          className={`h-56 w-full shrink-0 overflow-hidden rounded-3xl shadow-md sm:h-64 sm:w-72 ${
+            coffee.imageUrl ? 'cursor-zoom-in' : ''
+          }`}
+          onClick={() => coffee.imageUrl && setZoom(true)}
+          role={coffee.imageUrl ? 'button' : undefined}
+          title={coffee.imageUrl ? '点击查看大图' : undefined}
+        >
           <CoffeeCover coffee={coffee} />
         </div>
         <div className="min-w-0 flex-1">
@@ -158,7 +176,7 @@ function CoffeeDetail({ id }: { id: string }) {
                   </Link>
                   <button
                     type="button"
-                    onClick={() => void handleDelete()}
+                    onClick={() => setConfirm({ type: 'coffee' })}
                     className="rounded-full border border-red-200 px-4 py-1.5 text-sm text-red-600 transition-colors hover:bg-red-50"
                   >
                     删除
@@ -248,10 +266,14 @@ function CoffeeDetail({ id }: { id: string }) {
               <textarea
                 value={commentForm.content}
                 onChange={(e) => setCommentForm((f) => ({ ...f, content: e.target.value }))}
+                maxLength={COMMENT_MAX_LENGTH}
                 className="w-full rounded-xl border border-coffee-300/70 bg-cream-50 px-3.5 py-2 text-sm text-ink-900 placeholder:text-ink-400 focus:border-coffee-500 focus:ring-2 focus:ring-coffee-300/40 focus:outline-none min-h-24 resize-y"
                 placeholder="分享你对这款豆子的看法..."
                 required
               />
+              <div className="mt-1 text-right text-xs text-ink-400">
+                {commentForm.content.length}/{COMMENT_MAX_LENGTH}
+              </div>
             </div>
             <button type="submit" disabled={submitting || !commentForm.content.trim()} className="rounded-full bg-coffee-700 px-5 py-2 text-sm font-medium text-cream-50 shadow-sm transition-all hover:bg-coffee-800 hover:shadow-md disabled:opacity-50">
               {submitting ? '发布中...' : '发布评论'}
@@ -283,7 +305,9 @@ function CoffeeDetail({ id }: { id: string }) {
                       {canDelete && (
                         <button
                           type="button"
-                          onClick={() => void handleDeleteComment(comment.id)}
+                          onClick={() =>
+                            setConfirm({ type: 'comment', commentId: comment.id })
+                          }
                           className="rounded-full px-2 py-1 text-xs text-ink-400 transition-colors hover:bg-red-50 hover:text-red-500"
                           title="删除评论"
                         >
@@ -299,6 +323,49 @@ function CoffeeDetail({ id }: { id: string }) {
           </div>
         )}
       </section>
+
+      {/* 删除确认 */}
+      <ConfirmDialog
+        open={confirm !== null}
+        title={confirm?.type === 'coffee' ? '删除这款咖啡豆？' : '删除这条评论？'}
+        description={
+          confirm?.type === 'coffee'
+            ? `「${coffee.name}」及其全部评论、冲煮图片将被一并删除，无法恢复。`
+            : undefined
+        }
+        confirmLabel="删除"
+        onConfirm={() =>
+          confirm?.type === 'coffee'
+            ? void handleDelete()
+            : void handleDeleteComment(confirm!.commentId!)
+        }
+        onCancel={() => setConfirm(null)}
+      />
+
+      {/* 图片看大图 */}
+      {zoom && coffee.imageUrl && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="查看大图"
+          onClick={() => setZoom(false)}
+        >
+          <img
+            src={resolveImageUrl(coffee.imageUrl)}
+            alt={coffee.name}
+            className="max-h-full max-w-full rounded-2xl object-contain shadow-2xl"
+          />
+          <button
+            type="button"
+            onClick={() => setZoom(false)}
+            aria-label="关闭大图"
+            className="absolute top-4 right-4 rounded-full bg-white/10 px-3 py-2 text-sm text-white transition-colors hover:bg-white/20"
+          >
+            ✕ 关闭
+          </button>
+        </div>
+      )}
     </div>
   )
 }

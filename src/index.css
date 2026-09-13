@@ -25,6 +25,23 @@
   background-color: #221c15;
 }
 
+/* 半透明背景变体（Tailwind 生成的类名带 \/ 转义，需单独覆盖） */
+.dark .bg-cream-50\/90 {
+  background-color: rgba(34, 28, 21, 0.9);
+}
+
+.dark .bg-cream-50\/80 {
+  background-color: rgba(34, 28, 21, 0.8);
+}
+
+.dark .bg-cream-50\/60 {
+  background-color: rgba(34, 28, 21, 0.6);
+}
+
+.dark .bg-cream-50\/50 {
+  background-color: rgba(34, 28, 21, 0.5);
+}
+
 .dark .text-ink-900 {
   color: #ece1d2;
 }
@@ -71,6 +88,35 @@
 
 .dark .border-coffee-300\/70 {
   border-color: rgba(85, 64, 46, 0.7);
+}
+
+.dark .border-coffee-300 {
+  border-color: rgba(85, 64, 46, 0.9);
+}
+
+/* 中间调文字（hero 小标题 / 评论数等） */
+.dark .text-coffee-500,
+.dark .text-coffee-600 {
+  color: #cdb298;
+}
+
+/* 管理员徽章底色 */
+.dark .bg-coffee-200 {
+  background-color: #4a3826;
+}
+
+/* 红色危险操作态（删除按钮等） */
+.dark .text-red-600,
+.dark .text-red-500 {
+  color: #f87171;
+}
+
+.dark .border-red-200 {
+  border-color: rgba(153, 27, 27, 0.6);
+}
+
+.dark .hover\:bg-red-50:hover {
+  background-color: rgba(127, 29, 29, 0.25);
 }
 
 .dark .bg-leaf-300\/30 {

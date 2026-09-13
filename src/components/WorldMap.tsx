@@ -15,23 +15,16 @@ const world = feature(
 const WIDTH = 960
 const HEIGHT = 480
 
-/** 收藏数量 → 地图填充颜色（亮色模式） */
-function getVisitedColor(count: number): string {
-  if (count >= 5) return '#684833'  // coffee-700
-  if (count >= 3) return '#825c3e'  // coffee-600
-  if (count >= 2) return '#9c7350'  // coffee-500
-  return '#b58f6f'  // coffee-400
+/** 收藏数量 → 地图填充 Tailwind 类（亮/暗两套色，dark: 前缀由 .dark 祖先切换） */
+function getVisitedFillClass(count: number): string {
+  if (count >= 5) return 'fill-[#684833] dark:fill-[#e6c39a]'
+  if (count >= 3) return 'fill-[#825c3e] dark:fill-[#d3a87c]'
+  if (count >= 2) return 'fill-[#9c7350] dark:fill-[#b58f6f]'
+  return 'fill-[#b58f6f] dark:fill-[#9c7350]'
 }
 
-/** 未访问国家颜色 */
-function getUnvisitedColor(): string {
-  return '#eaddcc'  // cream-300
-}
-
-/** 选中国家边框颜色 */
-function getStrokeColor(isSelected: boolean): string {
-  return isSelected ? '#5f9e4d' : '#fdfbf7'  // leaf-500 : cream-50
-}
+/** 未访问国家填充类 */
+const UNVISITED_FILL_CLASS = 'fill-[#eaddcc] dark:fill-[#3a3129]'
 
 interface WorldMapProps {
   /** 国家名 → 咖啡豆数量 */
@@ -77,18 +70,20 @@ export default function WorldMap({
           <path
             key={name}
             d={d}
-            fill={
+            className={`${
               isVisited
-                ? getVisitedColor(count)
-                : getUnvisitedColor()
-            }
-            stroke={getStrokeColor(isSelected)}
-            strokeWidth={isSelected ? 2 : 0.6}
-            className={
+                ? getVisitedFillClass(count)
+                : UNVISITED_FILL_CLASS
+            } ${
+              isSelected
+                ? 'stroke-[#5f9e4d] dark:stroke-[#7fb069]'
+                : 'stroke-[#fdfbf7] dark:stroke-[#221c15]'
+            } ${
               isVisited
                 ? 'cursor-pointer transition-opacity hover:opacity-80'
                 : undefined
-            }
+            }`}
+            strokeWidth={isSelected ? 2 : 0.6}
             onClick={() => onSelect(isSelected || !isVisited ? null : name)}
           >
             <title>

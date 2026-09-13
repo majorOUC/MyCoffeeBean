@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 
 import { AuthProvider } from '@/components/AuthContext'
@@ -12,10 +13,26 @@ import DiaryFormPage from '@/pages/DiaryFormPage'
 import DiaryPage from '@/pages/DiaryPage'
 import HomePage from '@/pages/HomePage'
 import LoginPage from '@/pages/LoginPage'
-import MapPage from '@/pages/MapPage'
 import ProfilePage from '@/pages/ProfilePage'
 import StatsPage from '@/pages/StatsPage'
 import UserManagementPage from '@/pages/UserManagementPage'
+
+// 地图页携带 ~108KB 地理数据，按需加载，避免拖慢首屏
+const MapPage = lazy(() => import('@/pages/MapPage'))
+
+function LazyMapPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="py-8">
+          <div className="h-64 animate-pulse rounded-3xl bg-coffee-100/60" />
+        </div>
+      }
+    >
+      <MapPage />
+    </Suspense>
+  )
+}
 
 function App() {
   return (
@@ -36,7 +53,7 @@ function App() {
               <Route path="brew-card/edit" element={<BrewCardFormPage />} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="stats" element={<StatsPage />} />
-              <Route path="map" element={<MapPage />} />
+              <Route path="map" element={<LazyMapPage />} />
               <Route path="login" element={<LoginPage />} />
             </Route>
           </Routes>
