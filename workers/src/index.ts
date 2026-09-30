@@ -532,6 +532,7 @@ app.post('/api/diary', async (c) => {
     id: crypto.randomUUID(),
     title: input.title.trim(),
     content: input.content.trim(),
+    images: normalizeDiaryImages(input.images),
     createdAt: now,
     updatedAt: now,
   }
@@ -556,10 +557,19 @@ app.put('/api/diary/:id', async (c) => {
     return c.json({ error: '标题和内容不能为空' }, 400)
   }
 
+  const images = normalizeDiaryImages(input.images)
+  // 清理本次编辑中被移除的配图，避免 R2 残留孤儿对象
+  for (const url of existing.images ?? []) {
+    if (!images.includes(url)) {
+      await cleanupImage(c.env, url)
+    }
+  }
+
   const updated = {
     ...existing,
     title: input.title.trim(),
     content: input.content.trim(),
+    images,
     updatedAt: new Date().toISOString(),
   }
   await db.updateDiaryEntry(existing.id, updated)
@@ -577,6 +587,9 @@ app.delete('/api/diary/:id', async (c) => {
   const existing = await db.getDiaryEntry(c.req.param('id'))
   if (!existing) return c.json({ error: 'not found' }, 404)
 
+  for (const url of existing.images ?? []) {
+    await cleanupImage(c.env, url)
+  }
   await db.deleteDiaryEntry(existing.id)
   return c.json({ ok: true })
 })
@@ -663,6 +676,16 @@ async function cleanupImage(env: Env, imageUrl?: string): Promise<void> {
   if (!imageUrl?.startsWith('/api/images/')) return
   const key = imageUrl.slice('/api/images/'.length)
   await env.IMAGES.delete(key)
+}
+
+/** 规范化日记配图：去空白、去重、截断到 9 张 */
+function normalizeDiaryImages(images?: string[]): string[] {
+  if (!Array.isArray(images)) return []
+  const seen = new Set<string>()
+  for (const raw of images) {
+    if (typeof raw === 'string' && raw.trim()) seen.add(raw.trim())
+  }
+  return Array.from(seen).slice(0, 9)
 }
 
 function normalize(input: CoffeeInput): CoffeeInput {

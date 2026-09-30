@@ -68,6 +68,7 @@ interface DiaryRow {
   id: string
   title: string
   content: string
+  images: string | null
   created_at: string
   updated_at: string
 }
@@ -137,11 +138,24 @@ function rowToUser(row: UserRow): User {
   }
 }
 
+/** 解析 diary.images JSON 列（损坏或非法数据一律回退为空数组） */
+function parseDiaryImages(raw: string | null): string[] {
+  if (!raw) return []
+  try {
+    const parsed: unknown = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return []
+    return parsed.filter((x): x is string => typeof x === 'string')
+  } catch {
+    return []
+  }
+}
+
 function rowToDiary(row: DiaryRow): DiaryEntry {
   return {
     id: row.id,
     title: row.title,
     content: row.content,
+    images: parseDiaryImages(row.images),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }
@@ -511,19 +525,32 @@ export class Database {
   async createDiaryEntry(entry: DiaryEntry): Promise<void> {
     await this.db
       .prepare(
-        `INSERT INTO diary (id, title, content, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?)`,
+        `INSERT INTO diary (id, title, content, images, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?)`,
       )
-      .bind(entry.id, entry.title, entry.content, entry.createdAt, entry.updatedAt)
+      .bind(
+        entry.id,
+        entry.title,
+        entry.content,
+        JSON.stringify(entry.images ?? []),
+        entry.createdAt,
+        entry.updatedAt,
+      )
       .run()
   }
 
   async updateDiaryEntry(id: string, entry: DiaryEntry): Promise<void> {
     await this.db
       .prepare(
-        `UPDATE diary SET title=?, content=?, updated_at=? WHERE id=?`,
+        `UPDATE diary SET title=?, content=?, images=?, updated_at=? WHERE id=?`,
       )
-      .bind(entry.title, entry.content, entry.updatedAt, id)
+      .bind(
+        entry.title,
+        entry.content,
+        JSON.stringify(entry.images ?? []),
+        entry.updatedAt,
+        id,
+      )
       .run()
   }
 

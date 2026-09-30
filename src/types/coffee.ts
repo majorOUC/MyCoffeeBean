@@ -83,12 +83,16 @@ export interface DiaryEntry {
   id: string
   title: string
   content: string
+  /** 配图 URL 数组（R2 图片，最多 9 张） */
+  images?: string[]
   createdAt: string
   updatedAt: string
 }
 
 /** 新增/编辑日记时的输入 */
-export type DiaryInput = Pick<DiaryEntry, 'title' | 'content'>
+export type DiaryInput = Pick<DiaryEntry, 'title' | 'content'> & {
+  images?: string[]
+}
 
 /** 主页手冲参数展示卡（单条常驻卡片，公开可见，仅管理员可编辑） */
 export interface BrewCard {

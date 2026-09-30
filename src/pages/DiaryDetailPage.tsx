@@ -8,6 +8,7 @@ import { useToast } from '@/components/toastContext'
 import { coffeeService } from '@/services/coffeeService'
 import type { DiaryEntry } from '@/types/coffee'
 import { formatDate } from '@/utils/format'
+import { resolveImageUrl } from '@/utils/url'
 
 export default function DiaryDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -15,6 +16,7 @@ export default function DiaryDetailPage() {
   const { user } = useAuth()
   const toast = useToast()
   const [entry, setEntry] = useState<DiaryEntry | null | undefined>(undefined)
+  const [zoomImage, setZoomImage] = useState<string | null>(null)
 
   useEffect(() => {
     if (!id || !user || user.role !== 'admin') return
@@ -87,6 +89,27 @@ export default function DiaryDetailPage() {
           </div>
         </div>
 
+        {entry.images && entry.images.length > 0 && (
+          <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {entry.images.map((img, i) => (
+              <button
+                key={`${img}-${i}`}
+                type="button"
+                onClick={() => setZoomImage(img)}
+                className="group aspect-square cursor-zoom-in overflow-hidden rounded-2xl border border-coffee-200/70"
+                title="点击查看大图"
+              >
+                <img
+                  src={resolveImageUrl(img)}
+                  alt={`日记配图 ${i + 1}`}
+                  loading="lazy"
+                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+              </button>
+            ))}
+          </div>
+        )}
+
         <div className="mt-8 flex gap-3 border-t border-coffee-200/60 pt-6">
           <Link
             to={`/diary/${entry.id}/edit`}
@@ -103,6 +126,22 @@ export default function DiaryDetailPage() {
           </button>
         </div>
       </article>
+
+      {zoomImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="查看大图"
+          onClick={() => setZoomImage(null)}
+        >
+          <img
+            src={resolveImageUrl(zoomImage)}
+            alt="日记配图大图"
+            className="max-h-full max-w-full rounded-2xl object-contain shadow-2xl"
+          />
+        </div>
+      )}
     </div>
   )
 }

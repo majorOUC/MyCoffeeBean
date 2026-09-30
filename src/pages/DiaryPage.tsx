@@ -8,6 +8,7 @@ import ErrorState from '@/components/ErrorState'
 import { coffeeService } from '@/services/coffeeService'
 import type { DiaryEntry } from '@/types/coffee'
 import { formatDate } from '@/utils/format'
+import { resolveImageUrl } from '@/utils/url'
 
 export default function DiaryPage() {
   const { user } = useAuth()
@@ -112,6 +113,24 @@ export default function DiaryPage() {
                         <p className="mt-2 line-clamp-2 text-sm text-ink-500">
                           {entry.content}
                         </p>
+                        {entry.images && entry.images.length > 0 && (
+                          <div className="mt-3 flex items-center gap-2">
+                            {entry.images.slice(0, 3).map((img, i) => (
+                              <img
+                                key={`${img}-${i}`}
+                                src={resolveImageUrl(img)}
+                                alt=""
+                                loading="lazy"
+                                className="h-14 w-14 rounded-xl border border-coffee-200/60 object-cover"
+                              />
+                            ))}
+                            {entry.images.length > 3 && (
+                              <span className="text-xs text-ink-400">
+                                +{entry.images.length - 3}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </Link>
                     </div>
                   </li>
