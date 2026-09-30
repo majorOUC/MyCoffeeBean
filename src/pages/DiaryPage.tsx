@@ -44,7 +44,7 @@ export default function DiaryPage() {
             咖啡日记
           </h1>
           <p className="mt-1 text-sm text-ink-400">
-            记录你的咖啡生活
+            共 {entries.length} 篇 · 记录你的咖啡生活
           </p>
         </div>
         <Link
@@ -57,11 +57,11 @@ export default function DiaryPage() {
 
       <div className="mt-8">
         {loading ? (
-          <div className="space-y-4">
+          <div className="space-y-4 pl-8">
             {Array.from({ length: 3 }).map((_, i) => (
               <div
                 key={i}
-                className="h-32 animate-pulse rounded-2xl bg-coffee-100/60"
+                className="h-28 animate-pulse rounded-2xl bg-coffee-100/60"
               />
             ))}
           </div>
@@ -72,27 +72,61 @@ export default function DiaryPage() {
             description="记录你的咖啡生活点滴。"
           />
         ) : (
-          <div className="space-y-4">
-            {entries.map((entry) => (
-              <Link
-                key={entry.id}
-                to={`/diary/${entry.id}`}
-                className="block rounded-2xl border border-coffee-200/70 bg-cream-50 p-5 shadow-sm transition-all hover:border-coffee-400 hover:shadow-md"
-              >
-                <h2 className="font-display text-lg font-semibold text-coffee-900">
-                  {entry.title}
-                </h2>
-                <p className="mt-2 line-clamp-2 text-sm text-ink-500">
-                  {entry.content}
-                </p>
-                <p className="mt-3 text-xs text-ink-400">
-                  {formatDate(entry.createdAt)}
-                </p>
-              </Link>
-            ))}
+          <div className="relative">
+            {/* 时间轴主线：与节点圆点同轴（圆点直径 10px，圆心在 5px） */}
+            <div
+              aria-hidden
+              className="absolute bottom-2 left-[5px] top-2 w-px bg-coffee-200"
+            />
+            <ol className="space-y-6">
+              {entries.map((entry, i) => {
+                const showNewMonth =
+                  i === 0 ||
+                  entries[i - 1].createdAt.slice(0, 7) !==
+                    entry.createdAt.slice(0, 7)
+                return (
+                  <li key={entry.id}>
+                    {showNewMonth && (
+                      <p className="mb-4 pl-8 text-xs font-medium tracking-[0.2em] text-ink-400">
+                        {monthLabel(entry.createdAt)}
+                      </p>
+                    )}
+                    <div className="group relative pl-8">
+                      {/* 时间轴节点：悬停卡片时放大并点亮 */}
+                      <span
+                        aria-hidden
+                        className="absolute left-0 top-[28px] z-10 h-2.5 w-2.5 rounded-full bg-coffee-200 transition-all duration-300 ease-out group-hover:scale-150 group-hover:bg-coffee-700"
+                      />
+                      <Link
+                        to={`/diary/${entry.id}`}
+                        className="block rounded-2xl border border-coffee-200/70 bg-cream-50 p-5 shadow-sm transition-all duration-300 ease-out hover:translate-x-1.5 hover:scale-[1.02] hover:border-coffee-400 hover:shadow-lg"
+                      >
+                        <div className="flex flex-wrap items-baseline justify-between gap-x-3">
+                          <h2 className="font-display text-lg font-semibold text-coffee-900 transition-colors group-hover:text-coffee-700">
+                            {entry.title}
+                          </h2>
+                          <span className="shrink-0 text-xs text-ink-400">
+                            {formatDate(entry.createdAt)}
+                          </span>
+                        </div>
+                        <p className="mt-2 line-clamp-2 text-sm text-ink-500">
+                          {entry.content}
+                        </p>
+                      </Link>
+                    </div>
+                  </li>
+                )
+              })}
+            </ol>
           </div>
         )}
       </div>
     </div>
   )
+}
+
+/** ISO 日期 "2026-09-13T..." → 月份分组标题 "2026 年 9 月" */
+function monthLabel(createdAt: string): string {
+  const [year, month] = createdAt.split('-')
+  return `${year} 年 ${Number(month)} 月`
 }
