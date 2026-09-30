@@ -117,16 +117,22 @@ export default function RootLayout() {
       </main>
 
       <footer className="border-t border-coffee-200/60 bg-cream-50">
-        <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-2 px-4 py-6 text-sm text-ink-400 sm:flex-row sm:px-6">
+        <div
+          className={`mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-2 px-4 py-6 text-sm text-ink-400 sm:px-6 ${
+            user?.role === 'admin' ? 'sm:flex-row' : ''
+          }`}
+        >
           <span>Coffee Atlas · 个人咖啡豆图鉴</span>
-          <a
-            href="https://github.com/majorOUC/MyCoffeeBean"
-            target="_blank"
-            rel="noreferrer"
-            className="hover:text-coffee-700"
-          >
-            GitHub
-          </a>
+          {user?.role === 'admin' && (
+            <a
+              href="https://github.com/majorOUC/MyCoffeeBean"
+              target="_blank"
+              rel="noreferrer"
+              className="hover:text-coffee-700"
+            >
+              GitHub
+            </a>
+          )}
         </div>
       </footer>
     </div>
