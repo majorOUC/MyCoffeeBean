@@ -146,16 +146,13 @@ export default function DiaryFormPage() {
           <label className="mb-1.5 block text-xs font-medium tracking-wide text-ink-500">
             配图（可选，最多 {MAX_DIARY_IMAGES} 张）
           </label>
-          <div className="mt-2 grid grid-cols-3 gap-3 sm:grid-cols-5">
+          <div className="mt-2 flex flex-wrap items-start gap-3">
             {(form.images ?? []).map((url) => (
-              <div
-                key={url}
-                className="group relative aspect-square overflow-hidden rounded-2xl border border-coffee-200/70"
-              >
+              <div key={url} className="relative">
                 <img
                   src={resolveImageUrl(url)}
                   alt="日记配图"
-                  className="h-full w-full object-cover"
+                  className="h-24 w-auto rounded-2xl border border-coffee-200/70"
                 />
                 <button
                   type="button"
@@ -172,7 +169,7 @@ export default function DiaryFormPage() {
                 type="button"
                 disabled={uploading}
                 onClick={() => fileRef.current?.click()}
-                className="flex aspect-square flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-coffee-300/70 text-ink-400 transition-colors hover:border-coffee-400 hover:text-coffee-700 disabled:opacity-50"
+                className="flex h-24 w-24 flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed border-coffee-300/70 text-ink-400 transition-colors hover:border-coffee-400 hover:text-coffee-700 disabled:opacity-50"
               >
                 <span aria-hidden className="text-2xl">
                   {uploading ? '⏳' : '📷'}

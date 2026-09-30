@@ -121,7 +121,7 @@ export default function DiaryPage() {
                                 src={resolveImageUrl(img)}
                                 alt=""
                                 loading="lazy"
-                                className="h-14 w-14 rounded-xl border border-coffee-200/60 object-cover"
+                                className="h-14 w-auto rounded-xl border border-coffee-200/60"
                               />
                             ))}
                             {entry.images.length > 3 && (

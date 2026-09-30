@@ -90,20 +90,24 @@ export default function DiaryDetailPage() {
         </div>
 
         {entry.images && entry.images.length > 0 && (
-          <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div className="mt-6 grid grid-cols-2 items-start gap-3 sm:grid-cols-3">
             {entry.images.map((img, i) => (
               <button
                 key={`${img}-${i}`}
                 type="button"
                 onClick={() => setZoomImage(img)}
-                className="group aspect-square cursor-zoom-in overflow-hidden rounded-2xl border border-coffee-200/70"
+                className={`group w-full cursor-zoom-in overflow-hidden rounded-2xl border border-coffee-200/70 ${
+                  entry.images!.length === 1 ? 'col-span-2 sm:col-span-3' : ''
+                }`}
                 title="点击查看大图"
               >
                 <img
                   src={resolveImageUrl(img)}
                   alt={`日记配图 ${i + 1}`}
                   loading="lazy"
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  className={`h-auto w-full transition-transform duration-300 group-hover:scale-105 ${
+                    entry.images!.length === 1 ? 'mx-auto max-w-md' : ''
+                  }`}
                 />
               </button>
             ))}
